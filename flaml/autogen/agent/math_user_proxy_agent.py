@@ -321,7 +321,7 @@ class MathUserProxyAgent(UserProxyAgent):
                     output = output.decode("utf-8")
                     is_success = exitcode == 0
                 else:
-                    output = "Error: The language is not supported."
+                    output = "Error: Unknown language."
                     is_success = False
 
                 reply += output + "\n"
