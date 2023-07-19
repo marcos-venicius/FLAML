@@ -8,79 +8,59 @@ import random
 pygame.init()
 
 # Set up some constants
-WIDTH = 800
-HEIGHT = 600
-BLOCK_SIZE = 50
+WIDTH, HEIGHT = 640, 480
+SPEED = 2
 
 # Set up the display
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 
-# Set up the player
-player = pygame.Rect(WIDTH / 2, HEIGHT / 2, BLOCK_SIZE, BLOCK_SIZE)
-
-# Set up the target
-target = pygame.Rect(
-    random.randint(0, WIDTH - BLOCK_SIZE), random.randint(0, HEIGHT - BLOCK_SIZE), BLOCK_SIZE, BLOCK_SIZE
-)
+# Set up the player and the goal
+player = pygame.Rect(WIDTH / 2, HEIGHT / 2, 50, 50)
+goal = pygame.Rect(random.randint(0, WIDTH - 50), random.randint(0, HEIGHT - 50), 50, 50)
 
 # Set up the score
 score = 0
 
-# Set up the game clock
-clock = pygame.time.Clock()
-
-# Set up the font for the score display
-font = pygame.font.Font(None, 36)
-
 # Game loop
-while True:
+running = True
+while running:
+    # Event handling
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
-            pygame.quit()
-            sys.exit()
+            running = False
 
-    # Fill the screen with white
-    screen.fill((255, 255, 255))
-
-    # Draw the player
-    pygame.draw.rect(screen, (0, 0, 255), player)
-
-    # Draw the target
-    pygame.draw.rect(screen, (255, 0, 0), target)
-
-    # Move the player
+    # Player movement
     keys = pygame.key.get_pressed()
     if keys[pygame.K_LEFT]:
-        player.x -= 5
+        player.x -= SPEED
     if keys[pygame.K_RIGHT]:
-        player.x += 5
+        player.x += SPEED
     if keys[pygame.K_UP]:
-        player.y -= 5
+        player.y -= SPEED
     if keys[pygame.K_DOWN]:
-        player.y += 5
+        player.y += SPEED
 
-    # Make sure the player stays on the screen
-    if player.x < 0:
-        player.x = 0
-    if player.y < 0:
-        player.y = 0
-    if player.x > WIDTH - BLOCK_SIZE:
-        player.x = WIDTH - BLOCK_SIZE
-    if player.y > HEIGHT - BLOCK_SIZE:
-        player.y = HEIGHT - BLOCK_SIZE
-
-    # Check if the player has reached the target
-    if player.colliderect(target):
+    # Check for collision with the goal
+    if player.colliderect(goal):
         score += 1
-        target.x = random.randint(0, WIDTH - BLOCK_SIZE)
-        target.y = random.randint(0, HEIGHT - BLOCK_SIZE)
+        goal.x = random.randint(0, WIDTH - 50)
+        goal.y = random.randint(0, HEIGHT - 50)
+
+    # Fill the screen with a blue color
+    screen.fill((0, 0, 255))
+
+    # Draw the player and the goal to the screen
+    pygame.draw.rect(screen, (255, 0, 0), player)
+    pygame.draw.rect(screen, (0, 255, 0), goal)
 
     # Display the score
-    score_text = font.render("Score: " + str(score), True, (0, 0, 0))
-    screen.blit(score_text, (10, 10))
+    font = pygame.font.Font(None, 36)
+    text = font.render("Score: " + str(score), 1, (10, 10, 10))
+    screen.blit(text, (10, 10))
 
     # Update the display
     pygame.display.flip()
 
-    # Cap the frame rate
-    clock.tick(60)
+# Clean up
+pygame.quit()
+sys.exit()
