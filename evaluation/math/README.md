@@ -1,4 +1,41 @@
 # Evaluation on Math problem solving
+
+MathChat simulates conversations between a LLM assistant and a user proxy agent, which can easily be implemented with the *AgentChat* framework.
+We evaluate MathChat with several other potential math problem-solving tools, including *Auto-GPT*, *ChatGPT+Plugin*, *LangChain ReAct+Python*.
+
+Setup:
+For all applications, we use GPT-4 as the base model, and "sympy" package is pre-installed.
+- Auto-GPT: We use the out-of-box Auto-GPT. At the beginning, we set the purpose of the GPT to "solve math problems", resulting in a  "MathSolverGPT" with auto-generated goals.
+- ChatGPT+Plugin: the Wolfram Alpha plugin is used.
+- LangChain ReAct+Python: We use the ReAct+Python chain in LangChain. The ReAct agent is customized to solve math problems.
+
+Qualitative Evaluation:
+We random select 2 level-5 problems from the MathChat dataset and test on them for 3 times. The first problem asks to simply a square root fraction, and the second problem ask to solve an inclusion-exlcusion problem. 
+
+The table shows an overview of the results:
+
+**Problem 1**
+| Application      | Correct Count | Tool Used | Failed Reason                                                                 |
+|------------------|---------------|-----------|-------------------------------------------------------------------------------|
+| MathChat         | 3/3           | Python    | N\A                                                                          |
+| Auto-GPT         | 0/3           | Python    | The LLM gives code without the print function so the result is not printed    |
+| Langchain ReAct  | 0/3           | Python    | LangChain gives 3 different wrong answers                                     |
+| ChatGPT+Plugin   | 0/3           | Wolfram   | The return from Wolfram contains 2 simplied result, including the correct answer, but GPT-4 always chooses the wrong answer |
+
+**Problem 2**
+| Application      | Correct Count | Tool Used | Failed Reason                                                                 |
+|------------------|---------------|-----------|-------------------------------------------------------------------------------|
+| MathChat         | 3/3           | Python    | N\A                                                                          |
+| Auto-GPT         | 0/3           | Python    | The LLM gives code without the print function so the result is not printed    |
+| Langchain ReAct  | 2/3           | Python    | Got one parsing exception during the test                                     |
+| ChatGPT+Plugin   | 2/3           | Wolfram   | GPT-4 got stuck by keep giving the wrong querying and has to be stopped.       |
+
+We analyse the results in terms of correctness, verbosity and experience.
+- Correctness: *MathChat* can always solves the problem the two problems correctly. *ChatGPT+Plugin* and *Langchain ReAct* can solve the second problem almost certainly, but fails on the first problem. *Auto-GPT* fails on both problems due to a code execution issue. The LLM always give the code without the print function, so the result is not printed. For the first problem, we tried to run the code snippets manually from one trial and found that the result is correct.
+- Verbosity/Length: *ChatGPT+Plugin* is the least verbose since it write queries to Wolfram Alpha instead of Python code. *MathChat* is less verbose than *Langchain ReAct* since it has less errors to be corrected. *Auto-GPT* is the most verbose with predefined steps like THOUGHTS, REASONING, PLAN. Verbosity rank: *ChatGPT+Plugin* < *MathChat* < *Langchain ReAct* < *Auto-GPT*
+- Experience/Readabilty: We analyse the experience of using these applications in terms of generated content without considering the interface design. The verbosity of *Auto-GPT* makes it harder to read, and the printing issue result in a loop that need to be manually stopped. Other applications are easier to read. *ChatGPT+Plugin* also has the potential to stuck in a loop that needs to be manually stopped. *Langchain ReAct* could finish with error, which is undesirable.
+
+
 ## Observations
 *Auto-GPT*
 - It is easy to use AutoGPT as an automatic tool. Given a intention, it will build its only name, role, goals and start the process.
