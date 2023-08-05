@@ -4,7 +4,7 @@ from typing import Callable, Dict, List, Optional, Union
 from flaml import oai
 from .agent import Agent
 from flaml.autogen.code_utils import DEFAULT_MODEL, UNKNOWN, execute_code, extract_code, infer_lang
-
+import asyncio
 
 class ResponsiveAgent(Agent):
     """(Experimental) A class for generic responsive agents which can be configured as assistant or user proxy.
@@ -230,6 +230,61 @@ class ResponsiveAgent(Agent):
             print("\n>>>>>>>> NO HUMAN INPUT RECEIVED. USING AUTO REPLY FOR THE USER...", flush=True)
         self.send(self.generate_reply(self._oai_conversations[sender.name], default_reply=reply), sender)
 
+    async def a_receive(self, message: Union[Dict, str], sender: "Agent"):
+        """Receive a message from another agent.
+        (NOTE: The logic is the same with the receive function. Just an async version)
+
+        Once a message is received, this function sends a reply to the sender or stop.
+        The reply can be generated automatically or entered manually by a human.
+
+        Args:
+            message (dict or str): message from the sender. If the type is dict, it may contain the following reserved fields (All fields are optional).
+                1. "content": content of the message, can be None.
+                2. "function_call": a dictionary containing the function name and arguments.
+                3. "role": role of the message, can be "assistant", "user", "function".
+                    This field is only needed to distinguish between "function" or "assistant"/"user".
+                4. "name": In most cases, this field is not needed. When the role is "function", this field is needed to indicate the function name.
+            sender: sender of an Agent instance.
+        """
+        message = self._message_to_dict(message)
+        # When the agent receives a message, the role of the message is "user". (If 'role' exists and is 'function', it will remain unchanged.)
+        valid = self._append_oai_message(message, "user", sender.name)
+        if not valid:
+            return
+        self._print_received_message(message, sender)
+
+        # default reply is empty (i.e., no reply, in this case we will try to generate auto reply)
+        reply = ""
+        if self.human_input_mode == "ALWAYS":
+            reply = self.get_human_input(
+                "Provide feedback to the sender. Press enter to skip and use auto-reply, or type 'exit' to end the conversation: "
+            )
+        elif self._consecutive_auto_reply_counter[
+            sender.name
+        ] >= self.max_consecutive_auto_reply or self._is_termination_msg(message):
+            if self.human_input_mode == "TERMINATE":
+                reply = self.get_human_input(
+                    "Please give feedback to the sender. (Press enter or type 'exit' to stop the conversation): "
+                )
+                reply = reply if reply else "exit"
+            else:
+                # this corresponds to the case when self._human_input_mode == "NEVER"
+                reply = "exit"
+        if reply == "exit" or (self._is_termination_msg(message) and not reply):
+            # reset the consecutive_auto_reply_counter
+            self._consecutive_auto_reply_counter[sender.name] = 0
+            return
+        if reply:
+            # reset the consecutive_auto_reply_counter
+            self._consecutive_auto_reply_counter[sender.name] = 0
+            await self.a_send(reply, sender)
+            return
+
+        self._consecutive_auto_reply_counter[sender.name] += 1
+        if self.human_input_mode != "NEVER":
+            print("\n>>>>>>>> NO HUMAN INPUT RECEIVED. USING AUTO REPLY FOR THE USER...", flush=True)
+        await self.a_send(self.generate_reply(self._oai_conversations[sender.name], default_reply=reply), sender)
+
     def reset(self):
         """Reset the agent."""
         self._oai_conversations.clear()
@@ -269,6 +324,43 @@ class ResponsiveAgent(Agent):
         exitcode2str = "execution succeeded" if exitcode == 0 else "execution failed"
         return f"exitcode: {exitcode} ({exitcode2str})\nCode output: {logs}"
 
+    async def a_generate_reply(self, messages: List[Dict], default_reply: Union[str, Dict] = "") -> Union[str, Dict]:
+        """Reply based on the conversation history.
+        (NOTE: The logic is the same with the receive function. Just an async version)
+
+        First, execute function or code and return the result.
+        AI replies are generated only when no code execution is performed.
+        Subclasses can override this method to customize the reply.
+
+        Args:
+            messages: a list of messages in the conversation history.
+            default_reply (str or dict): default reply.
+
+        Returns:
+            str or dict: reply.
+        """
+        message = messages[-1]
+        if "function_call" in message:
+            _, func_return = self.execute_function(message["function_call"])
+            return func_return
+        if self._code_execution_config is False:
+            return default_reply if self.oai_config is False else self._oai_reply(messages)
+        code_blocks = extract_code(message["content"])
+        if len(code_blocks) == 1 and code_blocks[0][0] == UNKNOWN:
+            # no code block is found, lang should be `UNKNOWN`
+            return default_reply if self.oai_config is False else self._oai_reply(messages)
+        # try to execute the code
+        exitcode, logs = self.execute_code_blocks(code_blocks)
+        exitcode2str = "execution succeeded" if exitcode == 0 else "execution failed"
+        return f"exitcode: {exitcode} ({exitcode2str})\nCode output: {logs}"
+    
+    async def a_send(self, message: Union[Dict, str], recipient: "Agent"):
+        """Send a message to another agent."""
+        # When the agent composes and sends the message, the role of the message is "assistant". (If 'role' exists and is 'function', it will remain unchanged.)
+        valid = self._append_oai_message(message, "assistant", recipient.name)
+        if valid:
+            await recipient.a_receive(message, self)
+        
     def get_human_input(self, prompt: str) -> str:
         """Get human input.
 
@@ -421,6 +513,19 @@ class ResponsiveAgent(Agent):
                 "message" needs to be provided if the `generate_init_message` method is not overridden.
         """
         self.send(self.generate_init_message(**context), recipient)
+
+    async def a_initiate_chat(self, recipient, **context):
+        """Initiate a chat with the recipient agent.
+        (NOTE: The logic is the same with the receive function. Just an async version)
+
+        `generate_init_message` is called to generate the initial message for the agent.
+
+        Args:
+            recipient: the recipient agent.
+            **context: any context information.
+                "message" needs to be provided if the `generate_init_message` method is not overridden.
+        """
+        await self.a_send(self.generate_init_message(**context), recipient)
 
     def register_function(self, function_map: Dict[str, Callable]):
         """Register functions to the agent.
