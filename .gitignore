@@ -162,3 +162,5 @@ test/nlp/testtmpfl.py
 output/
 flaml/tune/spark/mylearner.py
 *.pkl
+
+.config.local
