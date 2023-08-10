@@ -9,9 +9,10 @@ The EM score indicates the percentage of questions where the predicted answer ma
 On the other hand, the F1 score measures the similarity between the predicted answer and the reference answer, taking into account both precision and recall.
 However, our results imply that recall, which measures the proportion of tokens in the reference answer that are present in the predicted answer, is more highly correlated with correctness than lexical overlap metrics such as EM or F1. Which is also mentioned in [this paper](https://arxiv.org/pdf/2307.16877v1.pdf).
 
-Results on the first 145 questions are as below:
+Results on the first 200 questions are as below:
 ```
-Average EM: 0.0
-Average F1: 0.17113575754109359
-Average Recall: 0.5484944253290597
+Average EM: 0.005
+Average F1: 0.22873285469719287
+Average Recall: 0.7319256264504997
 ```
+The F1 score and Recall score are significantly higher than the results showed in [this paper](https://arxiv.org/pdf/2307.16877v1.pdf).
