@@ -18,8 +18,8 @@ Average Recall: 73.19
 
 Results on the first 200 questions with gpt-3.5-turbo are as below:
 ```
-Average EM: 0.5
-Average F1: 19.22
-Average Recall: 61.85
+Average EM: 0.0
+Average F1: 23.87
+Average Recall: 62.38
 ```
 The F1 score and Recall score are significantly higher than the results showed in [this paper](https://arxiv.org/pdf/2307.16877v1.pdf).
