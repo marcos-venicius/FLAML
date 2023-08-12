@@ -53,7 +53,7 @@ ragproxyagent = RetrieveUserProxyAgent(
     retrieve_config={
         "task": "qa",
         "docs_path": corpus_file,
-        "chunk_token_size": 4900,
+        "chunk_token_size": 2000,
         "model": config_list[0]["model"],
         "client": chromadb.PersistentClient(path="/tmp/chromadb"),
         "collection_name": "natural-questions",
