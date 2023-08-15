@@ -1,4 +1,4 @@
-## Results from CMAEL
+## Results from CAMEL
 
 We run the demo provided by [CAMEL](https://github.com/camel-ai/camel)'s README page, which is a role-playing session for [designing a game using pygame](https://colab.research.google.com/drive/1AzP33O8rnMW__7ocWJhVBXjKziJXPtim?usp=sharing).
 
