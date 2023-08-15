@@ -1,0 +1,12 @@
+{
+  "problem": "If $\\displaystyle{f(x)=x^{(x+1)}(x+2)^{(x+3)}}$, then find the value of $f(0)+f(-1)+f(-2)+f(-3)$.",
+  "level": "Level 5",
+  "type": "Algebra",
+  "solution": "Since  $0^z=0$ for any $z>0,\\ f(0) =f(-2)= 0$. Since $(-1)^0=1$, \\begin{align*}\nf(0)+f(-1)+f(-2)+f(-3)&=(-1)^0(1)^2+(-3)^{-2}(-1)^0 \\\\\n&=1+\\frac{1}{(-3)^2} = \\boxed{\\frac{10}{9}}.\n\\end{align*}",
+  "problem_id": "11",
+  "cost": 0.01383,
+  "is_correct": true,
+  "correct_ans": "\\frac{10}{9}",
+  "voted_answer": "10/9",
+  "program": "\nimport math\nimport numpy as np\nimport sympy as sp # added\n\ndef solver():\n    x = sp.Symbol('x')\n    \n    # Next, define the function f(x)\n    f_x = x**(x+1) * (x+2)**(x+3)\n    \n    # Now, we need to find the values of the function at x = 0, -1, -2, and -3\n    f_0 = f_x.subs(x, 0)\n    f_minus1 = f_x.subs(x, -1)\n    f_minus2 = f_x.subs(x, -2)\n    f_minus3 = f_x.subs(x, -3)\n    \n    # Finally, we need to return the sum of these values\n    return f_0 + f_minus1 + f_minus2 + f_minus3\nprint(solver())"
+}
