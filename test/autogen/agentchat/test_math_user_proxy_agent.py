@@ -1,10 +1,12 @@
-from flaml import oai
-from flaml.autogen.agent.math_user_proxy_agent import MathUserProxyAgent, remove_print, add_print_to_last_line
 import pytest
 import sys
-
-KEY_LOC = "test/autogen"
-OAI_CONFIG_LIST = "OAI_CONFIG_LIST"
+from flaml import autogen
+from flaml.autogen.agentchat.contrib.math_user_proxy_agent import (
+    MathUserProxyAgent,
+    _remove_print,
+    _add_print_to_last_line,
+)
+from test_assistant_agent import KEY_LOC, OAI_CONFIG_LIST
 
 
 @pytest.mark.skipif(
@@ -17,49 +19,52 @@ def test_math_user_proxy_agent():
     except ImportError:
         return
 
-    from flaml.autogen.agent.assistant_agent import AssistantAgent
+    from flaml.autogen.agentchat.assistant_agent import AssistantAgent
 
     conversations = {}
-    oai.ChatCompletion.start_logging(conversations)
+    autogen.ChatCompletion.start_logging(conversations)
 
-    config_list = oai.config_list_from_json(
+    config_list = autogen.config_list_from_json(
         OAI_CONFIG_LIST,
         file_location=KEY_LOC,
         filter_dict={
-            "model": ["gpt-4", "gpt4", "gpt-4-32k", "gpt-4-32k-0314"],
+            "model": ["gpt-4", "gpt4", "gpt-4-32k", "gpt-4-32k-0314", "gpt-4-32k-v0314"],
         },
     )
     assistant = AssistantAgent(
         "assistant",
         system_message="You are a helpful assistant.",
-        request_timeout=600,
-        seed=42,
-        config_list=config_list,
+        llm_config={
+            "request_timeout": 600,
+            "seed": 42,
+            "config_list": config_list,
+        },
     )
 
     mathproxyagent = MathUserProxyAgent(name="MathChatAgent", human_input_mode="NEVER")
     assistant.reset()
 
     math_problem = "$x^3=125$. What is x?"
-    assistant.receive(
-        message=mathproxyagent.generate_init_message(math_problem),
-        sender=mathproxyagent,
-    )
+    # assistant.receive(
+    #     message=mathproxyagent.generate_init_message(math_problem),
+    #     sender=mathproxyagent,
+    # )
+    mathproxyagent.initiate_chat(assistant, problem=math_problem)
     print(conversations)
 
 
 def test_add_remove_print():
     # test add print
     code = "a = 4\nb = 5\na,b"
-    assert add_print_to_last_line(code) == "a = 4\nb = 5\nprint(a,b)"
+    assert _add_print_to_last_line(code) == "a = 4\nb = 5\nprint(a,b)"
 
     # test remove print
     code = """print("hello")\na = 4*5\nprint("wolrld")"""
-    assert remove_print(code) == "a = 4*5"
+    assert _remove_print(code) == "a = 4*5"
 
     # test remove print. Only remove prints without indentation
     code = "if 4 > 5:\n\tprint('True')"
-    assert remove_print(code) == code
+    assert _remove_print(code) == code
 
 
 @pytest.mark.skipif(
@@ -112,7 +117,7 @@ def test_generate_prompt():
 
 
 if __name__ == "__main__":
-    test_add_remove_print()
-    test_execute_one_python_code()
-    test_generate_prompt()
+    # test_add_remove_print()
+    # test_execute_one_python_code()
+    # test_generate_prompt()
     test_math_user_proxy_agent()

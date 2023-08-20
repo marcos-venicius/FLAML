@@ -1,10 +1,10 @@
 from time import sleep
 import logging
-import numpy as np
 import time
-from typing import List, Optional, Dict, Callable, Any
+from typing import List, Optional, Dict, Callable, Union
 import sys
 import shutil
+import numpy as np
 from flaml import tune, BlendSearch
 from flaml.tune.space import is_constant
 from flaml.automl.logger import logger_formatter
@@ -26,7 +26,7 @@ try:
 
     ERROR = None
 except ImportError:
-    ERROR = ImportError("please install flaml[openai] option to use the flaml.oai subpackage.")
+    ERROR = ImportError("please install flaml[openai] option to use the flaml.autogen.oai subpackage.")
     openai_Completion = object
 logger = logging.getLogger(__name__)
 if not logger.handlers:
@@ -684,6 +684,7 @@ class Completion(openai_Completion):
         config_list: Optional[List[Dict]] = None,
         filter_func: Optional[Callable[[Dict, Dict, Dict], bool]] = None,
         raise_on_ratelimit_or_timeout: Optional[bool] = True,
+        allow_format_str_template: Optional[bool] = False,
         **config,
     ):
         """Make a completion for a given context.
@@ -694,7 +695,7 @@ class Completion(openai_Completion):
                 E.g., `prompt="Complete the following sentence: {prefix}, context={"prefix": "Today I feel"}`.
                 The actual prompt will be:
                 "Complete the following sentence: Today I feel".
-                More examples can be found at [templating](/docs/Use-Cases/Auto-Generation#templating).
+                More examples can be found at [templating](/docs/Use-Cases/Autogen#templating).
             use_cache (bool, Optional): Whether to use cached responses.
             config_list (List, Optional): List of configurations for the completion to try.
                 The first one that does not raise an error will be used.
@@ -738,6 +739,7 @@ class Completion(openai_Completion):
 
             raise_on_ratelimit_or_timeout (bool, Optional): Whether to raise RateLimitError or Timeout when all configs fail.
                 When set to False, -1 will be returned when all configs fail.
+            allow_format_str_template (bool, Optional): Whether to allow format string template in the config.
             **config: Configuration for the openai API call. This is used as parameters for calling openai API.
                 Besides the parameters for the openai API call, it can also contain a seed (int) for the cache.
                 This is useful when implementing "controlled randomness" for the completion.
@@ -753,6 +755,7 @@ class Completion(openai_Completion):
             cost = 0
             for i, each_config in enumerate(config_list):
                 base_config = config.copy()
+                base_config["allow_format_str_template"] = allow_format_str_template
                 base_config.update(each_config)
                 if i < last and filter_func is None and "retry_timeout" not in base_config:
                     # retry_timeout = 0 to avoid retrying when no filter is given
@@ -779,7 +782,7 @@ class Completion(openai_Completion):
                     logger.debug(f"failed with config {i}", exc_info=1)
                     if i == last:
                         raise
-        params = cls._construct_params(context, config)
+        params = cls._construct_params(context, config, allow_format_str_template=allow_format_str_template)
         if not use_cache:
             return cls._get_response(
                 params, raise_on_ratelimit_or_timeout=raise_on_ratelimit_or_timeout, use_cache=False
@@ -792,15 +795,20 @@ class Completion(openai_Completion):
             return cls._get_response(params, raise_on_ratelimit_or_timeout=raise_on_ratelimit_or_timeout)
 
     @classmethod
-    def _instantiate(cls, template: str, context: Optional[Dict] = None):
-        if not context:
+    def instantiate(
+        cls,
+        template: Union[str, None],
+        context: Optional[Dict] = None,
+        allow_format_str_template: Optional[bool] = False,
+    ):
+        if not context or template is None:
             return template
         if isinstance(template, str):
-            return template.format(**context)
+            return template.format(**context) if allow_format_str_template else template
         return template(context)
 
     @classmethod
-    def _construct_params(cls, data_instance, config, prompt=None, messages=None):
+    def _construct_params(cls, context, config, prompt=None, messages=None, allow_format_str_template=False):
         params = config.copy()
         model = config["model"]
         prompt = config.get("prompt") if prompt is None else prompt
@@ -814,12 +822,14 @@ class Completion(openai_Completion):
             params["messages"] = (
                 [
                     {
-                        "role": m["role"],
-                        "content": cls._instantiate(m["content"], data_instance),
+                        **m,
+                        "content": cls.instantiate(m["content"], context, allow_format_str_template),
                     }
+                    if m.get("content")
+                    else m
                     for m in messages
                 ]
-                if data_instance
+                if context
                 else messages
             )
         elif model in cls.chat_models or issubclass(cls, ChatCompletion):
@@ -827,12 +837,12 @@ class Completion(openai_Completion):
             params["messages"] = [
                 {
                     "role": "user",
-                    "content": cls._instantiate(prompt, data_instance),
+                    "content": cls.instantiate(prompt, context, allow_format_str_template),
                 },
             ]
             params.pop("prompt", None)
         else:
-            params["prompt"] = cls._instantiate(prompt, data_instance)
+            params["prompt"] = cls.instantiate(prompt, context, allow_format_str_template)
         return params
 
     @classmethod

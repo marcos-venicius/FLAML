@@ -1,10 +1,60 @@
 import os
-from flaml import oai
-from flaml.autogen.agent import AssistantAgent, UserProxyAgent
+import sys
+import pytest
+from flaml import autogen
+from flaml.autogen.agentchat import AssistantAgent, UserProxyAgent
 
-KEY_LOC = "test/autogen"
+KEY_LOC = "notebook"
 OAI_CONFIG_LIST = "OAI_CONFIG_LIST"
 here = os.path.abspath(os.path.dirname(__file__))
+
+
+@pytest.mark.skipif(
+    sys.platform in ["darwin", "win32"],
+    reason="do not run on MacOS or windows",
+)
+def test_ai_user_proxy_agent():
+    try:
+        import openai
+    except ImportError:
+        return
+
+    conversations = {}
+    autogen.ChatCompletion.start_logging(conversations)
+
+    config_list = autogen.config_list_from_json(
+        OAI_CONFIG_LIST,
+        file_location=KEY_LOC,
+    )
+    assistant = AssistantAgent(
+        "assistant",
+        system_message="You are a helpful assistant.",
+        llm_config={
+            "request_timeout": 600,
+            "seed": 42,
+            "config_list": config_list,
+        },
+    )
+
+    ai_user_proxy = UserProxyAgent(
+        name="ai_user",
+        human_input_mode="NEVER",
+        max_consecutive_auto_reply=2,
+        code_execution_config=False,
+        llm_config={
+            "config_list": config_list,
+        },
+        # In the system message the "user" always refers to ther other agent.
+        system_message="You ask a user for help. You check the answer from the user and provide feedback.",
+    )
+    assistant.reset()
+
+    math_problem = "$x^3=125$. What is x?"
+    ai_user_proxy.initiate_chat(
+        assistant,
+        message=math_problem,
+    )
+    print(conversations)
 
 
 def test_gpt35(human_input_mode="NEVER", max_consecutive_auto_reply=5):
@@ -12,7 +62,7 @@ def test_gpt35(human_input_mode="NEVER", max_consecutive_auto_reply=5):
         import openai
     except ImportError:
         return
-    config_list = oai.config_list_from_json(
+    config_list = autogen.config_list_from_json(
         OAI_CONFIG_LIST,
         file_location=KEY_LOC,
         filter_dict={
@@ -22,15 +72,18 @@ def test_gpt35(human_input_mode="NEVER", max_consecutive_auto_reply=5):
                 "gpt-3.5-turbo-0301",
                 "chatgpt-35-turbo-0301",
                 "gpt-35-turbo-v0301",
+                "gpt",
             },
         },
     )
+    llm_config = {
+        "seed": 42,
+        "config_list": config_list,
+        "max_tokens": 1024,
+    }
     assistant = AssistantAgent(
         "coding_agent",
-        # request_timeout=600,
-        seed=40,
-        max_tokens=1024,
-        config_list=config_list,
+        llm_config=llm_config,
     )
     user = UserProxyAgent(
         "user",
@@ -42,16 +95,16 @@ def test_gpt35(human_input_mode="NEVER", max_consecutive_auto_reply=5):
             "use_docker": "python:3",
             "timeout": 60,
         },
+        llm_config=llm_config,
+        system_message="""Reply TERMINATE to end the conversation.""",
     )
     user.initiate_chat(assistant, message="TERMINATE")
     # should terminate without sending any message
-    assert assistant.oai_conversations[user.name][-1]["content"] == "TERMINATE"
-    assistant.reset()
+    assert assistant.last_message()["content"] == assistant.last_message(user)["content"] == "TERMINATE"
     coding_task = "Print hello world to a file called hello.txt"
     user.initiate_chat(assistant, message=coding_task)
     # coding_task = "Create a powerpoint with the text hello world in it."
     # assistant.receive(coding_task, user)
-    assistant.reset()
     coding_task = "Save a pandas df with 3 rows and 3 columns to disk."
     user.initiate_chat(assistant, message=coding_task)
     assert not isinstance(user.use_docker, bool)  # None or str
@@ -63,10 +116,18 @@ def test_create_execute_script(human_input_mode="NEVER", max_consecutive_auto_re
     except ImportError:
         return
 
-    config_list = oai.config_list_from_json(OAI_CONFIG_LIST, file_location=KEY_LOC)
+    config_list = autogen.config_list_from_json(OAI_CONFIG_LIST, file_location=KEY_LOC)
     conversations = {}
-    oai.ChatCompletion.start_logging(conversations)
-    assistant = AssistantAgent("assistant", request_timeout=600, seed=42, config_list=config_list)
+    autogen.ChatCompletion.start_logging(conversations)
+    llm_config = {
+        "request_timeout": 600,
+        "seed": 42,
+        "config_list": config_list,
+    }
+    assistant = AssistantAgent(
+        "assistant",
+        llm_config=llm_config,
+    )
     user = UserProxyAgent(
         "user",
         human_input_mode=human_input_mode,
@@ -86,10 +147,10 @@ print('Hello world!')
 ```""",
     )
     print(conversations)
-    oai.ChatCompletion.start_logging(compact=False)
+    autogen.ChatCompletion.start_logging(compact=False)
     user.send("""Execute temp.py""", assistant)
-    print(oai.ChatCompletion.logged_history)
-    oai.ChatCompletion.stop_logging()
+    print(autogen.ChatCompletion.logged_history)
+    autogen.ChatCompletion.stop_logging()
 
 
 def test_tsp(human_input_mode="NEVER", max_consecutive_auto_reply=10):
@@ -98,11 +159,11 @@ def test_tsp(human_input_mode="NEVER", max_consecutive_auto_reply=10):
     except ImportError:
         return
 
-    config_list = oai.config_list_from_json(
+    config_list = autogen.config_list_from_json(
         OAI_CONFIG_LIST,
         file_location=KEY_LOC,
         filter_dict={
-            "model": ["gpt-4", "gpt4", "gpt-4-32k", "gpt-4-32k-0314"],
+            "model": ["gpt-4", "gpt4", "gpt-4-32k", "gpt-4-32k-0314", "gpt-4-32k-v0314"],
         },
     )
     hard_questions = [
@@ -120,19 +181,17 @@ def test_tsp(human_input_mode="NEVER", max_consecutive_auto_reply=10):
         def generate_init_message(self, question) -> str:
             return self._prompt.format(question=question)
 
-    oai.ChatCompletion.start_logging()
-    assistant = AssistantAgent("assistant", temperature=0, config_list=config_list)
+    autogen.ChatCompletion.start_logging()
+    assistant = AssistantAgent("assistant", llm_config={"temperature": 0, "config_list": config_list})
     user = TSPUserProxyAgent(
         "user",
         code_execution_config={"work_dir": here},
         human_input_mode=human_input_mode,
         max_consecutive_auto_reply=max_consecutive_auto_reply,
     )
-    # agent.receive(prompt.format(question=hard_questions[0]), user)
-    # agent.receive(prompt.format(question=hard_questions[1]), user)
     user.initiate_chat(assistant, question=hard_questions[2])
-    print(oai.ChatCompletion.logged_history)
-    oai.ChatCompletion.stop_logging()
+    print(autogen.ChatCompletion.logged_history)
+    autogen.ChatCompletion.stop_logging()
 
 
 if __name__ == "__main__":
