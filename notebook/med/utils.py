@@ -24,6 +24,6 @@ def find_papers_pmc(query, size=10):
         print(f"{i + 1}. {paper['title']}")
         print(f"URL: https://europepmc.org/article/MED/{paper['id']}")
         # print(f"Authors: {paper['authorString']}")
-        print(f"Publication Date: {paper['pubYear']}")
+        print(f"Publication Date: {paper['firstPublicationDate']}")
         abstract = paper.get("abstractText", "No abstract available")
         print(f"Abstract: {abstract}\n")
