@@ -165,7 +165,7 @@ class MathUserProxyAgent(UserProxyAgent):
             default_auto_reply=default_auto_reply,
             **kwargs,
         )
-        self.register_auto_reply(Agent, self._generate_math_reply)
+        self.register_auto_reply([Agent, None], MathUserProxyAgent._generate_math_reply, 1)
         # fixed var
         self._max_invalid_q_per_step = max_invalid_q_per_step
 
@@ -203,7 +203,7 @@ class MathUserProxyAgent(UserProxyAgent):
         return PROMPTS[prompt_type] + problem
 
     def _reset(self):
-        super().reset()
+        # super().reset()
         self._valid_q_count = 0
         self._total_q_count = 0
         self._accum_invalid_q_per_step = 0
@@ -280,10 +280,11 @@ class MathUserProxyAgent(UserProxyAgent):
         self,
         messages: Optional[List[Dict]] = None,
         sender: Optional[Agent] = None,
+        config: Optional[Any] = None,
     ):
         """Generate an auto reply."""
         if messages is None:
-            messages = self._oai_messages[sender.name]
+            messages = self._oai_messages[sender]
         message = messages[-1]
         message = message.get("content", "")
         code_blocks = extract_code(message)
@@ -313,7 +314,7 @@ class MathUserProxyAgent(UserProxyAgent):
         reply = reply.strip()
 
         if self.last_reply == reply:
-            return reply + "\nYour query or result is same from the last, please try a new approach."
+            return True, reply + "\nYour query or result is same from the last, please try a new approach."
         self.last_reply = reply
 
         if not all_success:

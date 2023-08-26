@@ -163,4 +163,5 @@ output/
 flaml/tune/spark/mylearner.py
 *.pkl
 
-.config.local
+# local config files
+*.config.local
