@@ -6,16 +6,15 @@ import arxiv
 import os
 
 
-def find_papers_pmc(query, size=10):
+def find_papers_pmc(query: str, size: int = 10):
     """
     Find papers in PubMed Central (PMC) using Europe PMC API.
+    Print the title, url, publication date, and abstract of each paper found.
+    This function doesn't return anything.
 
     Args:
         query (str): The search query to use.
         size (int): The number of results to return (default 10).
-
-    Returns:
-        None. Prints the title, url, publication date, and abstract of each paper found.
     """
     url = f"https://www.ebi.ac.uk/europepmc/webservices/rest/search?query={query}&resulttype=core&pageSize={size}&format=json"
 
