@@ -45,8 +45,11 @@ class AgentChat:
                 "config_list": config_list,
                 "request_timeout": 600,
             },
-            system_message=system_message,
+            # system_message=system_message,
+            max_consecutive_auto_reply=10,
         )
+
+        print(self.assistant.system_message, flush=True)
 
         # create the UserProxyAgent instance named "user"
         self.user = UserProxyAgent(
@@ -73,7 +76,7 @@ class AgentChat:
         response_with_ans = self.assistant._oai_messages[self.user][-1]["content"]
         messages =  self.assistant._oai_messages[self.user]
         for i in range(-1, -1, len(messages)):
-            if messages['role'] == 'assistant' and messages['content'].strip() != 'TERMINATE' and messages['content'].strip() != 'TERMINATE.':
+            if messages[i]['role'] == 'assistant' and messages[i]['content'].strip() != 'TERMINATE' and messages[i]['content'].strip() != 'TERMINATE.':
                 response_with_ans = messages['content']
                 break
 
