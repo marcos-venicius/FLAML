@@ -2,7 +2,7 @@ from flaml.autogen import AssistantAgent, UserProxyAgent
 
 from flaml.autogen.code_utils import UNKNOWN, extract_code, execute_code, infer_lang
 from flaml.autogen.math_utils import eval_math_responses, get_answer
-
+from utils import remove_asy_sections
 
 def is_termination_msg(message):
     """Check if a message is a termination message."""
@@ -29,17 +29,14 @@ class AgentChat:
         """
 
         system_message =  """You are a helpful AI assistant.
-Solve tasks using your coding and language skills.
-If a plan is not provided, explain the plan first. Be clear which step uses code, and which step uses your language skill.
-In the following cases, suggest python code (in a python coding block) or shell script (in a sh coding block) for the user to execute.
-1. When you need to collect info, use the code to output the info you need, for example, browse or search the web, download/read a file, print the content of a webpage or a file, get the current date/time. After sufficient info is printed and the task is ready to be solved based on your language skill, you can solve the task by yourself.
-2. When you need to perform some task with code, use the code to perform the task and output the result. Finish the task smartly. Solve the task step by step if you need to.
-You must indicate the script type in the code block. The user cannot provide any other feedback or perform any other action beyond executing the code you suggest. The user can't modify your code. So do not suggest incomplete code which requires users to modify. Don't use a code block if it's not intended to be executed by the user.
-If you want the user to save the code in a file before executing it, put # filename: <filename> inside the code block as the first line. Don't include multiple code blocks in one response. Do not ask users to copy and paste the result. Instead, use 'print' function for the output when relevant. Check the execution result returned by the user.
-If the result indicates there is an error, fix the error and output the code again. Suggest the full code instead of partial code or code changes. If the error can't be fixed or if the task is not solved even after the code is executed successfully, analyze the problem, revisit your assumption, collect additional info you need, and think of a different approach to try.
-When you find an answer, verify the answer carefully. If a function for planning is provided, call the function to make plans and verify the execution.
-Put the final answer in \\boxed{} in the end when everything is done.
-"""
+    In the following cases, suggest python code (in a python coding block) or shell script (in a sh coding block) for the user to execute. You must indicate the script type in the code block. The user cannot provide any other feedback or perform any other action beyond executing the code you suggest. The user can't modify your code. So do not suggest incomplete code which requires users to modify. Don't use a code block if it's not intended to be executed by the user.
+    1. When you need to collect info, use the code to output the info you need, for example, browse or search the web, download/read a file, print the content of a webpage or a file, get the current date/time.
+    2. When you need to perform some task with code, use the code to perform the task and output the result. Finish the task smartly. Solve the task step by step if you need to.
+    If you want the user to save the code in a file before executing it, put # filename: <filename> inside the code block as the first line. Don't include multiple code blocks in one response. Do not ask users to copy and paste the result. Instead, use 'print' function for the output when relevant. Check the execution result returned by the user.
+    If the result indicates there is an error, fix the error and output the code again. Suggest the full code instead of partial code or code changes. If the error can't be fixed or if the task is not solved even after the code is executed successfully, analyze the problem, revisit your assumption, collect additional info you need, and think of a different approach to try.
+    When you find an answer, verify the answer carefully. If a function for planning is provided, call the function to make plans and verify the execution.
+    Reply "TERMINATE" in the end when everything is done.
+    """
         # create an AssistantAgent instance named "assistant"
         self.assistant = AssistantAgent(
             name="assistant",
@@ -55,8 +52,7 @@ Put the final answer in \\boxed{} in the end when everything is done.
         self.user = UserProxyAgent(
             name="user",
             human_input_mode="NEVER",
-            is_termination_msg=is_termination_msg,
-            max_consecutive_auto_reply=max_consecutive_auto_reply,
+            is_termination_msg=lambda x: x.get("content", "") and (x.get("content", "").rstrip().endswith("TERMINATE") or x.get("content", "").rstrip().endswith("TERMINATE.")),
             code_execution_config={
                 "work_dir": "coding",
                 "use_docker": False,  # set to True or image name like "python:3" to use docker
@@ -73,15 +69,13 @@ Put the final answer in \\boxed{} in the end when everything is done.
         self.assistant.reset()
 
         # solve
-        self.user.initiate_chat(self.assistant, message=problem["problem"])
+        self.user.initiate_chat(self.assistant, message=remove_asy_sections(problem["problem"]))
         response_with_ans = self.assistant._oai_messages[self.user][-1]["content"]
-
-        is_valid_reply = False
-        try:
-            if is_termination_msg(response_with_ans):
-                is_valid_reply = True
-        except Exception:
-            pass
+        messages =  self.assistant._oai_messages[self.user]
+        for i in range(-1, -1, len(messages)):
+            if messages['role'] == 'assistant' and messages['content'].strip() != 'TERMINATE' and messages['content'].strip() != 'TERMINATE.':
+                response_with_ans = messages['content']
+                break
 
 
         metrics = eval_math_responses([response_with_ans], problem["solution"])
@@ -94,11 +88,9 @@ Put the final answer in \\boxed{} in the end when everything is done.
             # must have 
             "response_with_ans": response_with_ans,
             "correct_ans": correct_ans,
-            "voted_answer": get_answer(metrics["voted_answer"]),  
+            "voted_answer": response_with_ans,  
             "is_correct": bool(metrics["success_vote"]),
                 
-            "is_valid_reply": is_valid_reply,
-            
             "round": (len(self.assistant._oai_messages[self.user]) - 1) // 2,
             "messages": self.assistant._oai_messages[self.user],
         }

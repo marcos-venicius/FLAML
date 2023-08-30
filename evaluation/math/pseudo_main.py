@@ -89,16 +89,55 @@ def load_level5_math_test(num_samples=100):
 
 
 
+def load_samples(base_dir, num_samples=10):
+    # List of directories to search for .json files
+    folders = ["algebra", "number_theory", "counting_and_probability",
+               "prealgebra", "intermediate_algebra", "precalculus"]
+
+    samples = {}
+
+    for folder in folders:
+        folder_path = os.path.join(base_dir, folder)
+        
+        # Check if directory exists
+        if not os.path.isdir(folder_path):
+            print(f"Warning: {folder_path} not found!")
+            continue
+
+        # Load each .json file up to num_samples
+        for i in range(num_samples):
+            file_path = os.path.join(folder_path, f"{i}.json")
+
+            # Check if file exists
+            if not os.path.exists(file_path):
+                print(f"Warning: {file_path} not found!")
+                continue
+
+            with open(file_path, 'r') as file:
+                data = json.load(file)
+
+            # Append to the dictionary with a folder-wise key
+            if folder not in samples:
+                samples[folder] = []
+            samples[folder].append(data)
+
+    return samples
+
 
 def pseudo_main(config_list, api_key):
-
-    samples = load_level5_math_test(num_samples=100)
+    samples = load_samples("./300problems/", num_samples=10)
+    cate = samples.keys()
 
     agentchat = AgentChat(config_list=config_list)
-    solve_problems(samples, './results/agentchat', solver_function=agentchat.solve_one_problem)
+    for i, category in enumerate(cate):
+        solve_problems(samples[category], './agentchat_results/' + category, solver_function=agentchat.solve_one_problem)
 
+    # samples = load_level5_math_test(num_samples=100)
 
-    react = ReAct(api_key=api_key)
-    solve_problems(samples, './results/react', solver_function=react.solve_one_problem)
+    # agentchat = AgentChat(config_list=config_list)
+    # solve_problems(samples, './results/agentchat', solver_function=agentchat.solve_one_problem)
 
-    os.system("tar -czf results.tar.gz ./results")
+    # react = ReAct(api_key=api_key)
+    # solve_problems(samples, './results/react', solver_function=react.solve_one_problem)
+
+    # os.system("tar -czf results.tar.gz ./results")

@@ -165,3 +165,8 @@ flaml/tune/spark/mylearner.py
 
 # local config files
 *.config.local
+
+
+300problems
+agentchat_results
+results
