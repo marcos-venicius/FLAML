@@ -136,17 +136,22 @@ def pseudo_main(config_list, api_key):
     cate = samples.keys()
     checker = AnswerChecker(config_list=config_list)
 
+    import flaml
     # run agentchat
     agentchat = AgentChat(config_list=config_list)
     for i, category in enumerate(cate):
         solve_problems(
             samples[category],
-            "./results/agentchat_v2.0.2/" + category,
+            f"./results/agentchat_{flaml.__version__}/" + category,
             solver_function=agentchat.solve_one_problem,
             checker=checker,
         )
 
-    # run react
+    # check flaml version
+    if flaml.__version__ != "2.0.2":
+        exit()
+
+    # run react    
     react = ReAct(api_key=api_key)
     for i, category in enumerate(cate):
         solve_problems(

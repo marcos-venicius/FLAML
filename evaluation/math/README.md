@@ -19,9 +19,15 @@ The results will be in `./results` folder.
 ```
 nohup python main.py > agent_chat_langchain.out &
 ```
+Note: Need to check the beginning of `agent_chat_langchain.out` to confirm the version and the prompt for agentchat. Also check folder name in `results` to confirm the version.
+The first version to run should be v2.0.2.
 
-Note: Need to check the beginning of `agent_chat_langchain.out` to confirm the version and the prompt.
-The first version to should be v2.0.2.
+**TODO: Change flaml version to v2.0.0**. 
+Then run this again (react will be run only if flaml version is "2.0.2"):
+```
+nohup python main.py > agent_chat_langchain.out &
+```
+
 
 ## Run Auto-GPT
 1. Put the api key in `Auto-GPT/.env` file.
@@ -36,4 +42,10 @@ If the name is not exactly "MathSolverGPT", need to change line 60 in `run_autog
 3. start running auto-gpt
 ```
 nohup python run_autogpt.py > auto_gpt.out &
+```
+
+
+## Compress results
+```
+tar -czvf results.tar.gz results
 ```
