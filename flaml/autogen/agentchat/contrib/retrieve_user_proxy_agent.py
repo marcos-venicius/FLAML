@@ -1,3 +1,4 @@
+import re
 import chromadb
 from flaml.autogen.agentchat.agent import Agent
 from flaml.autogen.agentchat import UserProxyAgent
@@ -59,6 +60,81 @@ User's question is: {input_question}
 
 Context is: {input_context}
 """
+
+# rephrase
+PROMPT_MULTIHOP = """You're a retrieve augmented chatbot. The last line of your reply must start with `Update Context` or `Answer is`.
+You must follow below steps and write out every step of your reasoning process.
+Step 1. Read the question carefully and determine if it's a multi-hop question.
+Step 2. If it's a multi-hop question, go to Step 3.1. If it's not a multi-hop question, go to Step 3.2.
+Stpe 3.1. Break the question into sub questions and answer them one by one based on the context. Consider the following three cases.
+Case 1, if it's the last sub question and you can answer it, reply exactly `Answer is <the answer to the last sub question>`.
+Case 2, if it's not the last sub question and you can answer it, rephrase the next sub question by concatenating the answer of the current sub question.
+Case 3, if you can't anwser the sub question, reply exactly `Update Context <current rephrased sub question>`.
+Step 3.2. Answer the question directly based on the context. Consider the following two cases.
+Case 1, if you can answer the question, reply exactly `Answer is <the answer to the question>`.
+Case 2, if you can't answer the question, rephrase the question for better retrieval query, reply exactly `Update Context <rephrased question>`.
+
+User's question is: {input_question}
+
+Context is: {input_context}
+"""
+
+# # rephrase
+# PROMPT_MULTIHOP = """You're a retrieval augmented QA bot. You must think step-by-step, and write out every step of your reasoning process.
+# Step 1. Read the question carefully and determine if it's a multi-hop question.
+# Step 2. If it's a multi-hop question, extract the sub questions. If it's not a multi-hop question, keep the original question.
+# Step 3. Answer the question(s) based on the context one-by-one. Before answering each question, rephrase the question based on the answer of the previous question.
+# Go to Step 4 if you answered all the questions or you can't answer the current question.
+# Step 4. Summarize output of previous steps and answer the original question. If you can't answer the original question, rephrase the question with all the info you extracted.
+# You must reply `Answer is <your answer>` or `Update Context <your rephrased question>` for your final answer in the last line of your reply.
+
+# User's question is: {input_question}
+
+# Context is: {input_context}
+# """
+
+# # original
+# PROMPT_MULTIHOP = """You're a retrieval augmented QA bot, you can interactively get different context for answering a question. You must follow below steps.
+# Step 1, try to answer the question based on the current context. If you're sure about the answer, go to Step 2, otherwise go to Step 3. Don't write anything in this step.
+# Step 2, reply `Answer is <the answer to the question>` with no other words and exit the process.
+# Step 3, the question is a multi-hop question, you can only answer some sub questions. Rephrase the sub questions with answers to assertive sentences. Reply `Update Context <the rephrased sentences>` and exit the process.
+
+# Example question 1: Who is the mother of the first president of the United States?
+# You reply: Answer is Mary Ball Washington
+
+# Example question 2: Who is the mother of the first president of the United States?
+# You reply: Update Context The first president of the United States is George Washington.
+
+# User's question is: {input_question}
+
+# Context is: {input_context}
+# """
+
+# # rephrase
+# PROMPT_MULTIHOP = """You're a retrieval augmented QA chatbo. You answer user's questions based on your own knowledge and the
+# context provided by the user.
+# If you can answer the question with the current context, you should reply exactly `Answer is <your answer>`.
+# If you can't answer the question with the current context, you should rephrase the question with all the info you extracted into
+# a standalone question and reply exactly `Update Context <your rephrased question>`.
+
+# User's question is: {input_question}
+
+# Context is: {input_context}
+# """
+
+# # original
+# PROMPT_MULTIHOP = """You're a retrieval augmented QA chatbo. You answer user's questions based on your own knowledge and the
+# context provided by the user.
+# If you can answer the question with the current context, you should reply exactly `Answer is <your answer>`.
+# If you can't answer the question with the current context, you should extracted some facts for the question from the context
+# and reply exactly `Update Context <the facts you extracted>`.
+
+# User's question is: {input_question}
+
+# Context is: {input_context}
+# """
+
+CASE = "REPHRASE"  # "ORIGINAL" or "REPHRASE"
 
 
 def _is_termination_msg_retrievechat(message):
@@ -148,6 +224,7 @@ class RetrieveUserProxyAgent(UserProxyAgent):
         self._ipython = get_ipython()
         self._doc_idx = -1  # the index of the current used doc
         self._results = {}  # the results of the current query
+        self._intermidiate_answers = []  # the intermidiate answers
         self.register_auto_reply(Agent, RetrieveUserProxyAgent._generate_retrieve_user_reply)
 
     @staticmethod
@@ -161,9 +238,11 @@ class RetrieveUserProxyAgent(UserProxyAgent):
         else:
             return 4000
 
-    def _reset(self):
+    def _reset(self, intermidiate=False):
         self._doc_idx = -1  # the index of the current used doc
         self._results = {}  # the results of the current query
+        if not intermidiate:
+            self._intermidiate_answers = []  # the intermidiate answers
 
     def _get_context(self, results):
         doc_contents = ""
@@ -197,6 +276,8 @@ class RetrieveUserProxyAgent(UserProxyAgent):
             message = PROMPT_CODE.format(input_question=self.problem, input_context=doc_contents)
         elif task.upper() == "QA":
             message = PROMPT_QA.format(input_question=self.problem, input_context=doc_contents)
+        elif task.upper() == "MULTIHOP":
+            message = PROMPT_MULTIHOP.format(input_question=self.problem, input_context=doc_contents)
         elif task.upper() == "DEFAULT":
             message = PROMPT_DEFAULT.format(input_question=self.problem, input_context=doc_contents)
         else:
@@ -215,13 +296,29 @@ class RetrieveUserProxyAgent(UserProxyAgent):
             messages = self._oai_messages[sender]
         message = messages[-1]
         if (
-            "UPDATE CONTEXT" in message.get("content", "")[-20:].upper()
-            or "UPDATE CONTEXT" in message.get("content", "")[:20].upper()
+            "UPDATE CONTEXT" in message.get("content", "").split("\n")[-1].strip()[-20:].upper()
+            or "UPDATE CONTEXT" in message.get("content", "").split("\n")[-1].strip()[:20].upper()
         ):
             print(colored("Updating context and resetting conversation.", "green"), flush=True)
+            _message = message.get("content", "").split("\n")[-1].strip()
+            if self._task.upper() == "MULTIHOP":
+                self._reset(intermidiate=True)
+                _intermidiate_info = re.sub(r"update context", "", _message, flags=re.IGNORECASE)
+
+                if CASE == "ORIGINAL":
+                    # case 1, keep the original question
+                    self._intermidiate_answers.append(_intermidiate_info)
+                    self.retrieve_docs(_intermidiate_info, self.n_results)
+                else:
+                    # case 2, rephrase the question
+                    self.problem = _intermidiate_info
+                    self.retrieve_docs(self.problem, self.n_results)
+
+                doc_contents = "\n".join(self._intermidiate_answers) + "\n" + self._get_context(self._results)
+            else:
+                doc_contents = self._get_context(self._results)
             self.clear_history()
             sender.clear_history()
-            doc_contents = self._get_context(self._results)
             return True, self._generate_message(doc_contents, task=self._task)
         return False, None
 
@@ -263,6 +360,7 @@ class RetrieveUserProxyAgent(UserProxyAgent):
         self._reset()
         self.retrieve_docs(problem, n_results, search_string)
         self.problem = problem
+        self.n_results = n_results
         doc_contents = self._get_context(self._results)
         message = self._generate_message(doc_contents, self._task)
         return message
