@@ -7,24 +7,34 @@ import os
 from pseudo_main import load_samples
 from utils import remove_asy_sections
 
+
 def extract_command_and_args(s):
     # Match command and arguments from the input string
-    command_match = re.search(r'COMMAND =\s+(.*?)\s+ARGUMENTS', s)
-    args_match = re.search(r'ARGUMENTS =\s+({.*?})', s)
-    
+    command_match = re.search(r"COMMAND =\s+(.*?)\s+ARGUMENTS", s)
+    args_match = re.search(r"ARGUMENTS =\s+({.*?})", s)
+
     # Extract command and arguments
     command = command_match.group(1) if command_match else None
     arguments = args_match.group(1) if args_match else None
-    
+
     return command, arguments
+
 
 def run_script_with_auto_input(problem, problem_path):
     problem = remove_asy_sections(problem)
     # Command to run
     command = "docker compose -f Auto-GPT/docker-compose.yml run --rm auto-gpt --skip-news"
-    
+
     # Starting the process
-    process = subprocess.Popen(command, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True, bufsize=1, shell=True)
+    process = subprocess.Popen(
+        command,
+        stdin=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        universal_newlines=True,
+        bufsize=1,
+        shell=True,
+    )
 
     def send_input(input, allow_input):
         if not allow_input:
@@ -33,6 +43,7 @@ def run_script_with_auto_input(problem, problem_path):
         process.stdin.write(input + "\n")
         process.stdin.flush()
         return False
+
     # Iterate over the process's output
     count = 0
     command = None
@@ -45,34 +56,37 @@ def run_script_with_auto_input(problem, problem_path):
             print(line, end="")  # Display real-time output
             with open(problem_path, "a") as f:
                 f.write(line)
-    
+
         if "NEXT ACTION:" in line:
             command, _ = extract_command_and_args(line)
             print(command)
-            
+
         # Check for the continue prompt and provide the input if not sent recently
         if "Continue (y/n):" in line:
             allow_input = send_input("y", allow_input)
 
         elif "I want Auto-GPT to:" in line:
             allow_input = send_input("solve math problems", allow_input)
-            
+
         elif "MathSolverGPT asks: " in line:
             allow_input = send_input(f"{problem} (When you write code, always print the result.)", allow_input)
 
-        elif 'Input:' in line:
+        elif "Input:" in line:
             if command is None or command == "None" or command == "none":
                 allow_input = send_input(f"{problem} ≈", allow_input)
                 continue
-            
+
             allow_input = send_input("y", allow_input)
             count += 1
             if count > 15:
                 break
 
+
 def solve_problems(problem_set, saving_folder):
     os.makedirs(saving_folder, exist_ok=True)
-    done_problems = set([int(f.split(".")[0]) for f in os.listdir(saving_folder) if "txt" in f]) # from the saving folder load solved problems
+    done_problems = set(
+        [int(f.split(".")[0]) for f in os.listdir(saving_folder) if "txt" in f]
+    )  # from the saving folder load solved problems
 
     for i, problem in enumerate(problem_set):
         # update problem
@@ -83,7 +97,7 @@ def solve_problems(problem_set, saving_folder):
         problem_path = os.path.join(saving_folder, str(i) + ".txt")
         if int(problem["problem_id"]) in done_problems:
             continue
-        
+
         run_script_with_auto_input(problem["problem"], problem_path)
 
         # append to file
@@ -119,7 +133,7 @@ if __name__ == "__main__":
 # def run_script_with_auto_input(problem="Evaluate $i^5+i^{-25}+i^{45}$."):
 #     # Command to run
 #     command = "docker compose run --rm auto-gpt --skip-news"
-    
+
 #     # Start the process
 #     child = pexpect.spawn(command)
 #     child.logfile = sys.stdout.buffer
@@ -144,7 +158,7 @@ if __name__ == "__main__":
 
 #                 command, arguments = extract_command_and_args(line)
 #                 print(command, arguments)
-            
+
 #             elif idx == 2: # 'Continue (y/n):'
 #                 if not input_sent:
 #                     child.sendline("y")
@@ -153,7 +167,7 @@ if __name__ == "__main__":
 #             elif idx == 3: # 'I want Auto-GPT to:'
 #                 child.sendline("solve math problems")
 #                 input_sent = True
-            
+
 #             elif idx == 4: # 'MathSolverGPT asks:'
 #                 child.sendline(f"{problem} (When you write code, always print the result.)")
 #                 input_sent = True
@@ -180,7 +194,7 @@ if __name__ == "__main__":
 
 #             elif idx == 6: # '-=-=-=-=-=-=-= COMMAND AUTHORISED BY USER -=-=-=-=-=-=-'
 #                 input_sent = False
-            
+
 #             elif idx == 7: # pexpect.EOF
 #                 print("Child process terminated")
 #                 break
@@ -188,11 +202,10 @@ if __name__ == "__main__":
 #             elif idx == 8: # pexpect.TIMEOUT
 #                 print("Timeout occurred while waiting for a response.")
 #                 break
-        
+
 #         except pexpect.ExceptionPexpect:
 #             print("Error encountered with pexpect.")
 #             break
-
 
 
 if __name__ == "__main__":
@@ -212,7 +225,7 @@ if __name__ == "__main__":
 #     process = subprocess.Popen(["docker", "compose", "run", "--rm", "auto-gpt"],
 #                                stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
 #                                stdin=subprocess.PIPE, text=True, bufsize=1, universal_newlines=True)
-    
+
 #     while True:
 #         last_line = process.stdout.readline()
 #         if "Thinking..." in last_line.strip() or last_line.strip() == "":

@@ -9,7 +9,7 @@ from utils import remove_asy_sections
 
 class ReAct:
     def __init__(self, api_key) -> None:
-        self.llm = ChatOpenAI(model_name='gpt-4', openai_api_key=api_key)
+        self.llm = ChatOpenAI(model_name="gpt-4", openai_api_key=api_key)
         tools = [PythonREPLTool()]
         self.agent = initialize_agent(tools, self.llm, agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION, verbose=True)
 
@@ -22,11 +22,11 @@ class ReAct:
         # )
 
     def solve_one_problem(self, problem):
-        result = self.agent.run(remove_asy_sections(problem["problem"]) + "\n\n(When you write code, always print the result.)")
+        result = self.agent.run(
+            remove_asy_sections(problem["problem"]) + "\n\n(When you write code, always print the result.)"
+        )
         return {
-            # must have 
+            # must have
             "response_with_ans": result,
             "correct_ans": get_answer(problem["solution"]),
         }
-
-

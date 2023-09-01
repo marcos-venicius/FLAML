@@ -15,7 +15,7 @@ bash setup.sh
 2. modify `main.py`: `config_list` is for agentchat, `api_key` is for langchain
 
 ## Run AgentChat and LangChain
-The results will be in `./results` folder. 
+The results will be in `./results` folder.
 ```
 nohup python main.py > agent_chat_langchain.out &
 ```
@@ -37,7 +37,3 @@ If the name is not exactly "MathSolverGPT", need to change line 60 in `run_autog
 ```
 nohup python run_autogpt.py > auto_gpt.out &
 ```
-
-
-
-

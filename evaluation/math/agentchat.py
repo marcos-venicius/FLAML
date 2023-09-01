@@ -33,14 +33,18 @@ class AgentChat:
         self.user = UserProxyAgent(
             name="user",
             human_input_mode="NEVER",
-            is_termination_msg=lambda x: x.get("content", "") and (x.get("content", "").rstrip().endswith("TERMINATE") or x.get("content", "").rstrip().endswith("TERMINATE.")),
+            is_termination_msg=lambda x: x.get("content", "")
+            and (
+                x.get("content", "").rstrip().endswith("TERMINATE")
+                or x.get("content", "").rstrip().endswith("TERMINATE.")
+            ),
             code_execution_config={
                 "work_dir": "coding",
                 "use_docker": False,  # set to True or image name like "python:3" to use docker
             },
             max_consecutive_auto_reply=max_consecutive_auto_reply,
-    )
-        
+        )
+
     def solve_one_problem(self, problem):
         """Solve one problem.
 
@@ -58,7 +62,7 @@ class AgentChat:
 
         # extract reply
         response_with_ans = self.assistant._oai_messages[self.user][-1]["content"]
-        messages =  self.assistant._oai_messages[self.user]
+        messages = self.assistant._oai_messages[self.user]
         for j in range(len(messages) - 1, -1, -1):
             if (
                 messages[j]["role"] == "assistant"
@@ -67,12 +71,11 @@ class AgentChat:
             ):
                 response_with_ans = messages[j]["content"]
                 break
-            
-        return {
-            # must have 
-            "response_with_ans": response_with_ans,
-            "correct_ans":  get_answer(problem["solution"]),
 
+        return {
+            # must have
+            "response_with_ans": response_with_ans,
+            "correct_ans": get_answer(problem["solution"]),
             "round": (len(self.assistant._oai_messages[self.user]) - 1) // 2,
             "messages": self.assistant._oai_messages[self.user],
         }

@@ -1,4 +1,3 @@
-
 import os
 import json
 from flaml.autogen import oai
@@ -8,6 +7,7 @@ import datasets
 from agentchat import AgentChat
 from langchain_react import ReAct
 from answer_checker import AnswerChecker
+
 
 def write_json(dict_to_save, file):
     """Write a dictionary to a json file.
@@ -19,6 +19,7 @@ def write_json(dict_to_save, file):
     jstring = json.dumps(dict_to_save, indent=2)
     with open(file, "w") as j:
         j.write(jstring)
+
 
 class mylogger:
     def __init__(self, file) -> None:
@@ -34,8 +35,9 @@ class mylogger:
         if verbose:
             print(message, flush=True)
 
+
 def solve_problems(problem_set, saving_folder, solver_function, checker):
-    """ Solve a set of problems
+    """Solve a set of problems
     Args:
         problem_set (list): a list of problems
         saving_folder (str): the result folder to save the solved problems, the category folder will be created inside
@@ -46,9 +48,11 @@ def solve_problems(problem_set, saving_folder, solver_function, checker):
     """
     os.makedirs(saving_folder, exist_ok=True)
     logger = mylogger(os.path.join(saving_folder, "log.txt"))
-    
+
     stars = "*" * 80
-    done_problems = set([int(f.split(".")[0]) for f in os.listdir(saving_folder) if "json" in f]) # from the saving folder load solved problems
+    done_problems = set(
+        [int(f.split(".")[0]) for f in os.listdir(saving_folder) if "json" in f]
+    )  # from the saving folder load solved problems
     correct_counts = 0
 
     for i, problem in enumerate(problem_set):
@@ -66,7 +70,7 @@ def solve_problems(problem_set, saving_folder, solver_function, checker):
                 f"{stars}\nProblem {i} (from previous run) | Is_correct {problem['is_correct']} | Correct Answer: {problem['correct_ans']}\n\nReply: {problem['response_with_ans']}\n\nCheck: {problem['check_result']}\n{stars}\n"
             )
             continue
-        
+
         # solve problem
         result = solver_function(problem)
         problem.update(result)
@@ -88,14 +92,20 @@ def solve_problems(problem_set, saving_folder, solver_function, checker):
 
 def load_samples(base_dir, num_samples=10):
     # List of directories to search for .json files
-    folders = ["algebra", "number_theory", "counting_and_probability",
-               "prealgebra", "intermediate_algebra", "precalculus"]
+    folders = [
+        "algebra",
+        "number_theory",
+        "counting_and_probability",
+        "prealgebra",
+        "intermediate_algebra",
+        "precalculus",
+    ]
 
     samples = {}
 
     for folder in folders:
         folder_path = os.path.join(base_dir, folder)
-        
+
         # Check if directory exists
         if not os.path.isdir(folder_path):
             print(f"Warning: {folder_path} not found!")
@@ -110,7 +120,7 @@ def load_samples(base_dir, num_samples=10):
                 print(f"Warning: {file_path} not found!")
                 continue
 
-            with open(file_path, 'r') as file:
+            with open(file_path, "r") as file:
                 data = json.load(file)
 
             # Append to the dictionary with a folder-wise key
@@ -129,16 +139,20 @@ def pseudo_main(config_list, api_key):
     # run agentchat
     agentchat = AgentChat(config_list=config_list)
     for i, category in enumerate(cate):
-        solve_problems(samples[category], './results/agentchat_v2.0.2/' + category, solver_function=agentchat.solve_one_problem, checker=checker)
-
+        solve_problems(
+            samples[category],
+            "./results/agentchat_v2.0.2/" + category,
+            solver_function=agentchat.solve_one_problem,
+            checker=checker,
+        )
 
     # run react
     react = ReAct(api_key=api_key)
     for i, category in enumerate(cate):
-        solve_problems(samples[category], './results/react/' + category, solver_function=react.solve_one_problem, checker=checker)
-    
-    
-    
+        solve_problems(
+            samples[category], "./results/react/" + category, solver_function=react.solve_one_problem, checker=checker
+        )
+
     # samples = load_level5_math_test(num_samples=100)
 
     # agentchat = AgentChat(config_list=config_list)
