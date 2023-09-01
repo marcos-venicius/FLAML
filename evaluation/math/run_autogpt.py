@@ -106,7 +106,6 @@ def solve_problems(problem_set, saving_folder):
             f.write(f"Problem: {problem['problem']}\n\n")
             f.write(f"Correct Answer: {problem['correct_ans']}\n\n")
             f.write("***********************\n\n")
-        exit()
 
 
 if __name__ == "__main__":
@@ -208,8 +207,6 @@ if __name__ == "__main__":
 #             break
 
 
-if __name__ == "__main__":
-    run_script_with_auto_input()
     # run_script()
 
 #     # s = "NEXT ACTION: COMMAND = ARGUMENTS = {}"
