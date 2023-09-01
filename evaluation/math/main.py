@@ -56,6 +56,9 @@ if __name__ == "__main__":
             # },
         ]
 
+        # TODO: Add key to `api_key` and uncomment the following line
+        # api_key = ...
+
     try:
         os.environ["WOLFRAM_ALPHA_APPID"] = open("wolfram.txt").read().strip()
     except Exception:
