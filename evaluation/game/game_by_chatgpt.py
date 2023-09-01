@@ -1,4 +1,3 @@
-
 # import pygame
 # import random
 # import sys
@@ -138,14 +137,18 @@ RED = (255, 0, 0)
 # Setting up the display
 WINDOW = pygame.display.set_mode((SCREENWIDTH, SCREENHEIGHT))
 
+
 def player(x, y):
     pygame.draw.rect(WINDOW, GREEN, pygame.Rect(x, y, PLAYERWIDTH, PLAYERHEIGHT))
+
 
 def alien(x, y):
     pygame.draw.circle(WINDOW, RED, (x, y), 20)
 
+
 def bullet(x, y):
-    pygame.draw.line(WINDOW, WHITE, (x, y), (x, y+10), 2)
+    pygame.draw.line(WINDOW, WHITE, (x, y), (x, y + 10), 2)
+
 
 def isCollision(alienX, alienY, bulletX, bulletY):
     distance = ((alienX - bulletX) ** 2) + ((alienY - bulletY) ** 2)
@@ -154,9 +157,11 @@ def isCollision(alienX, alienY, bulletX, bulletY):
     else:
         return False
 
+
 def game_over():
     pygame.quit()
     sys.exit()
+
 
 def game_loop():
     player_x = SCREENWIDTH // 2
@@ -215,5 +220,6 @@ def game_loop():
         pygame.display.update()
         clock.tick(FPS)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     game_loop()

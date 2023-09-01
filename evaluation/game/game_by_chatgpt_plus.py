@@ -19,15 +19,18 @@ player_pos = [SCREEN_WIDTH // 2, SCREEN_HEIGHT - PLAYER_SIZE]
 # Obstacles
 obstacles = []
 
+
 def add_obstacle():
     new_obstacle_pos = [random.randint(0, SCREEN_WIDTH - OBSTACLE_SIZE), 0]
     obstacles.append(new_obstacle_pos)
+
 
 def update_obstacles():
     for obstacle in obstacles:
         obstacle[1] += OBSTACLE_SPEED
         if obstacle[1] > SCREEN_HEIGHT:
             obstacles.remove(obstacle)
+
 
 # Game loop
 running = True
@@ -58,9 +61,10 @@ while running:
 
     # Collision detection
     for obstacle in obstacles:
-        if (obstacle[0] < player_pos[0] < obstacle[0] + OBSTACLE_SIZE or
-            obstacle[0] < player_pos[0] + PLAYER_SIZE < obstacle[0] + OBSTACLE_SIZE) and \
-           obstacle[1] + OBSTACLE_SIZE > player_pos[1]:
+        if (
+            obstacle[0] < player_pos[0] < obstacle[0] + OBSTACLE_SIZE
+            or obstacle[0] < player_pos[0] + PLAYER_SIZE < obstacle[0] + OBSTACLE_SIZE
+        ) and obstacle[1] + OBSTACLE_SIZE > player_pos[1]:
             running = False
 
     # Clear screen
