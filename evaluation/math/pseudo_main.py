@@ -10,7 +10,6 @@ from langchain_react import ReAct
 from answer_checker import AnswerChecker
 
 
-
 def solve_problems(problem_set, saving_folder, solver_function, checker):
     """Solve a set of problems
     Args:
@@ -66,17 +65,18 @@ def solve_problems(problem_set, saving_folder, solver_function, checker):
 
 
 def solve_with_verifier(problem, solver_function, verifier_function):
-
     result = solver_function(problem)
 
     verify_result = verifier_function(problem["problem"], result["response_with_ans"])
 
-
     re_solve_count = 3
     re_check_count = 1
-    while (verify_result['state'] == 'no_answer' or verify_result['state'] == 'wrong') and re_solve_count > 0 and re_check_count > 0:
-
-        if verify_result['state'] == 'no_answer':
+    while (
+        (verify_result["state"] == "no_answer" or verify_result["state"] == "wrong")
+        and re_solve_count > 0
+        and re_check_count > 0
+    ):
+        if verify_result["state"] == "no_answer":
             verify_result = verifier_function(problem["problem"], result["response_with_ans"])
             re_check_count -= 1
             continue
@@ -86,13 +86,13 @@ def solve_with_verifier(problem, solver_function, verifier_function):
         re_solve_count -= 1
 
 
-
 def pseudo_main(config_list, api_key):
     samples = load_samples("./300problems/", num_samples=1)
     cate = samples.keys()
     checker = AnswerChecker(config_list=config_list)
 
     import flaml
+
     # run agentchat
     agentchat = AgentChat(config_list=config_list)
     for i, category in enumerate(cate):
@@ -108,7 +108,7 @@ def pseudo_main(config_list, api_key):
     if flaml.__version__ != "2.0.2":
         exit()
 
-    # run react    
+    # run react
     react = ReAct(api_key=api_key)
     for i, category in enumerate(cate):
         solve_problems(

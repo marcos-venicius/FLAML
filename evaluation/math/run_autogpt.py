@@ -68,19 +68,23 @@ def run_script_with_auto_input(problem, problem_path):
 
         elif "I want Auto-GPT to:" in line:
             allow_input = send_input("solve math problems", allow_input)
-            
+
         elif "MathSolverGPT asks: " in line:
-            allow_input = send_input(f"{problem} (When you write code, use 'print' function for the output)", allow_input)
+            allow_input = send_input(
+                f"{problem} (When you write code, use 'print' function for the output)", allow_input
+            )
             user_asked = True
 
         elif "Input:" in line:
             if command is None or command == "None" or command == "none":
-                allow_input = send_input(f"{problem} (When you write code, use 'print' function for the output)", allow_input)
+                allow_input = send_input(
+                    f"{problem} (When you write code, use 'print' function for the output)", allow_input
+                )
                 continue
-            if "ask_user" in command and user_asked == True:
+            if "ask_user" in command and user_asked is True:
                 allow_input = send_input("n", allow_input)
                 continue
-                
+
             allow_input = send_input("y", allow_input)
             count += 1
             if count > 15:
@@ -213,7 +217,7 @@ if __name__ == "__main__":
 #             break
 
 
-    # run_script()
+# run_script()
 
 #     # s = "NEXT ACTION: COMMAND = ARGUMENTS = {}"
 

@@ -6,7 +6,7 @@ pip install langchain
 git clone https://github.com/Significant-Gravitas/Auto-GPT.git
 cp ai_settings.yaml Auto-GPT/ai_settings.yaml
 
-echo "OPENAI_API_KEY=$(cat key_langchain_react.txt)" >> Auto-GPT/.env
+echo "OPENAI_API_KEY=$(cat key_langchain_react.txt)" > Auto-GPT/.env
 
 cd Auto-GPT
 echo "sympy" >> requirements.txt

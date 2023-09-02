@@ -40,6 +40,7 @@ class mylogger:
         if verbose:
             print(message, flush=True)
 
+
 def load_samples(base_dir, num_samples=10):
     # List of directories to search for .json files
     folders = [

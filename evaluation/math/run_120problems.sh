@@ -6,4 +6,4 @@ python main.py > agent_chat_langchain.out
 echo "Running auto-gpt"
 python run_autogpt.py > auto_gpt.out
 
-tar -czvf results.tar.gz results agent_chat_langchain.out auto_gpt.out Auto-GPT/logs
+tar -czvf results.tar.gz results agent_chat_langchain.out auto_gpt.out Auto-GPT/logs nohup.out &

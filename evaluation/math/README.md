@@ -15,7 +15,7 @@ There are two things need to do: 1. modify `main.py`: `config_list`. 2. put a ke
 (Note: if you do not want to use config_list in the first step, simply create `key_openai.txt` and your key there. this will set `openai.key=your_key` in `main.py`)
 
 2. setup
-Note: This file will unpack problems, install a package "langchain", clone a repo "Auto-GPT", and build a docker image for Auto-GPT.
+Note: The setup.sh will unpack problems, install a package "langchain", clone a repo "Auto-GPT", and build a docker image for Auto-GPT.
 ```
 cd evaluation/math
 bash setup.sh
@@ -23,7 +23,7 @@ bash setup.sh
 
 3. run evaluation
 ```
-nohup bash run_120problems.sh > run_120problems.out &
+nohup bash run_120problems.sh &
 ```
 
 
@@ -46,7 +46,7 @@ nohup python main.py > agent_chat_langchain.out &
 Note: Need to check the beginning of `agent_chat_langchain.out` to confirm the version and the prompt for agentchat. Also check folder name in `results` to confirm the version.
 The first version to run should be v2.0.2.
 
-**TODO: Change flaml version to v2.0.0**. 
+**TODO: Change flaml version to v2.0.0**.
 Then run this again (react will be run only if flaml version is "2.0.2"):
 ```
 nohup python main.py > agent_chat_langchain.out &

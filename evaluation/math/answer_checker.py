@@ -1,11 +1,9 @@
-
 from flaml.autogen import AssistantAgent, UserProxyAgent
 
-class AnswerChecker:
 
+class AnswerChecker:
     def __init__(self, config_list) -> None:
-        
-            # define answer checker chat
+        # define answer checker chat
         self.answer_checker = AssistantAgent(
             name="checker",
             llm_config={
@@ -47,7 +45,6 @@ class AnswerChecker:
             ),
         )
 
-    
     def check_answer(self, problem, reply_with_answer, ground_truth_answer):
         """Check answer.
         Args:
@@ -58,7 +55,9 @@ class AnswerChecker:
             (dict): the result dict.
         """
         # check answer
-        message_to_check = f"Problem: {problem}\n\nReply: {reply_with_answer}\n\nGround truth answer: {ground_truth_answer}"
+        message_to_check = (
+            f"Problem: {problem}\n\nReply: {reply_with_answer}\n\nGround truth answer: {ground_truth_answer}"
+        )
         self.checker_proxy.reset()
         self.answer_checker.reset()
         self.checker_proxy.initiate_chat(self.answer_checker, message=message_to_check)
@@ -67,5 +66,6 @@ class AnswerChecker:
         check_result = self.answer_checker._oai_messages[self.checker_proxy][-1]["content"].lower()
         return {
             "check_result": check_result,
-            "is_correct": "the answer is correct" in check_result or "the answer is approximated but should be correct" in check_result,
+            "is_correct": "the answer is correct" in check_result
+            or "the answer is approximated but should be correct" in check_result,
         }

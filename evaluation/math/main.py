@@ -57,7 +57,6 @@ if __name__ == "__main__":
             # },
         ]
 
-
     try:
         os.environ["WOLFRAM_ALPHA_APPID"] = open("wolfram.txt").read().strip()
     except Exception:

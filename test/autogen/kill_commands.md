@@ -3,7 +3,7 @@
 
 ## Start jobs in background
 
-Using nohup: 
+Using nohup:
 ```bash
 nohup python test_prompt.py > log.out &
 ```
@@ -21,7 +21,7 @@ Get things like this: (job id, status, command)
 ```
 [1]+  Done                    nohup python test/autogen/test_prompt.py
 ```
-Kill jobs with job id: 
+Kill jobs with job id:
 ```bash
 kill %1
 ```
@@ -46,5 +46,5 @@ kill 1368782
 This command will kill all the processes with the name "test_prompt":
 Be cautious if the matching name is too general. (for example, "python")
 ```bash
-ps -aux | grep test_prompt | awk '{print $2}' | xargs -n 1 kill -9 
+ps -aux | grep test_prompt | awk '{print $2}' | xargs -n 1 kill -9
 ```
