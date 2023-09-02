@@ -6,7 +6,7 @@ from utils import remove_asy_sections
 
 
 class AgentChat:
-    def __init__(self, config_list, seed=42, max_consecutive_auto_reply=15):
+    def __init__(self, config_list, system_message=None, seed=42, max_consecutive_auto_reply=15):
         """Initialize AgentChat
 
         Args:
@@ -25,8 +25,18 @@ class AgentChat:
             },
             # system_message=system_message,
         )
+        if system_message is not None:
+            self.assistant = AssistantAgent(
+            name="assistant",
+            llm_config={
+                "seed": seed,
+                "config_list": config_list,
+                "request_timeout": 600,
+            },
+            system_message=system_message,
+        )
+
         print(f"Seed = {seed}", flush=True)
-        print(flaml.__version__, flush=True)
         print(self.assistant.system_message, flush=True)
 
         # create the UserProxyAgent instance named "user"

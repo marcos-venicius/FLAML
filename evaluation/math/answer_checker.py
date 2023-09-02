@@ -19,6 +19,7 @@ class AnswerChecker:
     Please do the following:
     1. Extract the answer in the reply: "The answer is <answer extracted>".
     2. Check whether the answer in the reply matches the ground truth answer.
+        - The answer doesn't need to be in the exact format, but whether they have the same concept. For example, using "and" and "," might be the same.
         - When comparison is not obvious (for example, 3*\\sqrt(6) and 7.348), you may write code to check the answer and wait for the user to execute the code.
         - You should also note what the problem is asking for. For example, if the problem is asking to simplify a fraction to rational form, but the answer is in decimal form, you should mark the answer as incorrect even if they are the same number.
     3. After everything is done, please choose a reply from the following options:
