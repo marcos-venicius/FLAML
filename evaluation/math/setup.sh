@@ -4,7 +4,7 @@ pip install langchain
 
 
 # set up auto-gpt
-git clone git@github.com:Significant-Gravitas/Auto-GPT.git
+git clone https://github.com/Significant-Gravitas/Auto-GPT.git
 cd Auto-GPT
 cp .env.template .env
 # put key in .env
