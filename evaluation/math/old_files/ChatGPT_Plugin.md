@@ -40,11 +40,11 @@ Decimal approximation:
 Wolfram|Alpha website result for "simplify (sqrt(160)/sqrt(252))*(sqrt(245)/sqrt(108))":
 https://www.wolframalpha.com/input?i=simplify+%28sqrt%28160%29%2Fsqrt%28252%29%29%2A%28sqrt%28245%29%2Fsqrt%28108%29%29
 ```
-The completely simplified and rationalized form of the expression 
+The completely simplified and rationalized form of the expression
 
 $$\frac{\sqrt{160}}{\sqrt{252}}\times\frac{\sqrt{245}}{\sqrt{108}}$$
 
-is 
+is
 
 $$\frac{5\sqrt{14/3}}{9}$$
 
@@ -129,7 +129,7 @@ I apologize for the confusion. It seems there was an error in the calculation. T
 
 **Trial 2**
 
-This is a problem of set theory, specifically a problem involving the principle of inclusion and exclusion. 
+This is a problem of set theory, specifically a problem involving the principle of inclusion and exclusion.
 
 The principle of inclusion and exclusion states that for any three sets A, B, and C, the size of the union of the sets is given by:
 
@@ -230,7 +230,7 @@ My apologies for the earlier confusion. After correcting the calculation, it tur
 
 **Trial 3**
 
-This is a problem of set theory, specifically a problem involving the principle of inclusion and exclusion. 
+This is a problem of set theory, specifically a problem involving the principle of inclusion and exclusion.
 
 The principle of inclusion and exclusion states that for any three sets A, B, and C, the number of elements in the union of the sets is given by:
 
@@ -255,7 +255,7 @@ We know the following:
 - |B ∩ C| = 25 (people wearing both bathing suits and a hat)
 - |A ∪ B ∪ C| = 190 (total people on the beach)
 
-We can substitute these values into the formula and solve for |A ∩ B ∩ C|, which represents the number of people wearing all three items (sunglasses, bathing suits, and a hat). 
+We can substitute these values into the formula and solve for |A ∩ B ∩ C|, which represents the number of people wearing all three items (sunglasses, bathing suits, and a hat).
 
 Let's calculate this.
 

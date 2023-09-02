@@ -4,36 +4,11 @@ from flaml.autogen import oai
 from flaml.autogen.math_utils import eval_math_responses, get_answer
 import datasets
 
+from utils import load_samples, write_json, mylogger
 from agentchat import AgentChat
 from langchain_react import ReAct
 from answer_checker import AnswerChecker
 
-
-def write_json(dict_to_save, file):
-    """Write a dictionary to a json file.
-    Args:
-
-        dict_to_save (dict): The dictionary to save.
-        file (str): The file to save to.
-    """
-    jstring = json.dumps(dict_to_save, indent=2)
-    with open(file, "w") as j:
-        j.write(jstring)
-
-
-class mylogger:
-    def __init__(self, file) -> None:
-        self.file = file
-
-    def log(self, message, verbose=True):
-        """Print the message.
-        Args:
-            message (str): The message to print.
-        """
-        with open(self.file, "a") as f:
-            f.write(message + "\n")
-        if verbose:
-            print(message, flush=True)
 
 
 def solve_problems(problem_set, saving_folder, solver_function, checker):
@@ -90,49 +65,30 @@ def solve_problems(problem_set, saving_folder, solver_function, checker):
     logger.log("------------------------------------------------------------\n", verbose=True)
 
 
-def load_samples(base_dir, num_samples=10):
-    # List of directories to search for .json files
-    folders = [
-        "algebra",
-        "number_theory",
-        "counting_and_probability",
-        "prealgebra",
-        "intermediate_algebra",
-        "precalculus",
-    ]
+def solve_with_verifier(problem, solver_function, verifier_function):
 
-    samples = {}
+    result = solver_function(problem)
 
-    for folder in folders:
-        folder_path = os.path.join(base_dir, folder)
+    verify_result = verifier_function(problem["problem"], result["response_with_ans"])
 
-        # Check if directory exists
-        if not os.path.isdir(folder_path):
-            print(f"Warning: {folder_path} not found!")
+
+    re_solve_count = 3
+    re_check_count = 1
+    while (verify_result['state'] == 'no_answer' or verify_result['state'] == 'wrong') and re_solve_count > 0 and re_check_count > 0:
+
+        if verify_result['state'] == 'no_answer':
+            verify_result = verifier_function(problem["problem"], result["response_with_ans"])
+            re_check_count -= 1
             continue
 
-        # Load each .json file up to num_samples
-        for i in range(num_samples):
-            file_path = os.path.join(folder_path, f"{i}.json")
+        result = solver_function(problem)
+        verify_result = verifier_function(problem["problem"], result["response_with_ans"])
+        re_solve_count -= 1
 
-            # Check if file exists
-            if not os.path.exists(file_path):
-                print(f"Warning: {file_path} not found!")
-                continue
-
-            with open(file_path, "r") as file:
-                data = json.load(file)
-
-            # Append to the dictionary with a folder-wise key
-            if folder not in samples:
-                samples[folder] = []
-            samples[folder].append(data)
-
-    return samples
 
 
 def pseudo_main(config_list, api_key):
-    samples = load_samples("./300problems/", num_samples=20)
+    samples = load_samples("./300problems/", num_samples=1)
     cate = samples.keys()
     checker = AnswerChecker(config_list=config_list)
 
@@ -146,6 +102,7 @@ def pseudo_main(config_list, api_key):
             solver_function=agentchat.solve_one_problem,
             checker=checker,
         )
+        break
 
     # check flaml version
     if flaml.__version__ != "2.0.2":
@@ -157,6 +114,7 @@ def pseudo_main(config_list, api_key):
         solve_problems(
             samples[category], "./results/react/" + category, solver_function=react.solve_one_problem, checker=checker
         )
+        break
 
     # samples = load_level5_math_test(num_samples=100)
 

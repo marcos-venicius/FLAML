@@ -19,9 +19,9 @@ General process of camel (Check the figure in the paper):
 ### 2. A Test Case
 This is a test case on the same problem "Find all $x$ that satisfy the inequality $(2x+10)(x+3)<(3x+9)(x+8)$. Express your answer in interval notation. " with the [Agent app website](https://www.camel-ai.org/agent). It should be running gpt-3.5.
 
-Settings:   
-**Assitant role**: Math Solver that can use Python   
-**User role**: Student   
+Settings:
+**Assitant role**: Math Solver that can use Python
+**User role**: Student
 **General Idea** (field "Give me a preliminary idea (EDIT ME) to the problem"):  Find all $x$ that satisfy the inequality $(2x+10)(x+3)<(3x+9)(x+8)$. Express your answer in interval notation.
 
 It is not solving the problem at all. First the systems gives a Specified task prompt, then there is a separate chat window betwee two agents:

@@ -10,7 +10,7 @@ For all applications, we use GPT-4 as the base model, and "sympy" package is pre
 - LangChain ReAct+Python: We use the ReAct+Python chain in LangChain. The ReAct agent is customized to solve math problems.
 
 Qualitative Evaluation:
-We random select 2 level-5 problems from the MathChat dataset and test on them for 3 times. The first problem asks to simply a square root fraction, and the second problem ask to solve an inclusion-exlcusion problem. 
+We random select 2 level-5 problems from the MathChat dataset and test on them for 3 times. The first problem asks to simply a square root fraction, and the second problem ask to solve an inclusion-exlcusion problem.
 
 The table shows an overview of the results:
 
@@ -59,7 +59,7 @@ We analyse the results in terms of correctness, verbosity and experience.
 - A customized ReAct+Python is simlar to MathChat. The main difference is that ReAct+Python is viewed as one agent, but MathChat simluates interactions between two agents.
 
 ## Summary
-*Auto-GPT*, *ChatGPT+Plugin* and *LangChain ReAct+Python* can be useful in solving math problems. *Auto-GPT* and *LangChain ReAct+Python* uses Python as tool while *ChatGPT+Plugin* uses Wolfram Alpha. 
+*Auto-GPT*, *ChatGPT+Plugin* and *LangChain ReAct+Python* can be useful in solving math problems. *Auto-GPT* and *LangChain ReAct+Python* uses Python as tool while *ChatGPT+Plugin* uses Wolfram Alpha.
 
 
 *Auto-GPT* is packed into an on-the-shelf tool that is easy to use, which discourages customization. It takes some security measures to prevent malicious code execution. It is alsoo harder t customize *ChatGPT+Plugin* since it is an official release. *LangChain* as an framework allow flexibility to customize chains. However, through reading the documents, it seems much hard to create a complete new chain comparing to adapt from langchain examples.

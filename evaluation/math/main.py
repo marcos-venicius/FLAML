@@ -11,9 +11,10 @@ def main():
 
 if __name__ == "__main__":
     config_list = None
+
+    api_key = open("key_langchain_react.txt").read().strip()
     try:
         openai.api_key = open("key_openai.txt").read().strip()
-        api_key = openai.api_key
     except Exception:
         from azure.identity import DefaultAzureCredential
 
@@ -56,8 +57,6 @@ if __name__ == "__main__":
             # },
         ]
 
-        # TODO: Add key to `api_key` and uncomment the following line
-        # api_key = ...
 
     try:
         os.environ["WOLFRAM_ALPHA_APPID"] = open("wolfram.txt").read().strip()

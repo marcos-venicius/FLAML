@@ -6,6 +6,30 @@
 - Auto-GPT is not very stable. Current way is to matching strings from the ouput and input predefined strings.
 - An answerchecker is used for Langchain and AgentChat. This makes it easier to compare the results. It is not used for Auto-GPT and we need to mannually go through all results.
 
+
+## Run
+
+1. config keys
+There are two things need to do: 1. modify `main.py`: `config_list`. 2. put a key that can run gpt-4 in `key_langchain_react.txt` (start with "sk-"). This will be used to run LangChain and Auto-GPT.
+
+(Note: if you do not want to use config_list in the first step, simply create `key_openai.txt` and your key there. this will set `openai.key=your_key` in `main.py`)
+
+2. setup
+Note: This file will unpack problems, install a package "langchain", clone a repo "Auto-GPT", and build a docker image for Auto-GPT.
+```
+cd evaluation/math
+bash setup.sh
+```
+
+3. run evaluation
+```
+nohup bash run_120problems.sh > run_120problems.out &
+```
+
+
+
+<!-- # Run Quantitative Evaluation
+
 # Setup
 1. Run `setup.sh` to install langchain, unpack problems, setup auto-gpt
 ```
@@ -31,14 +55,6 @@ nohup python main.py > agent_chat_langchain.out &
 
 ## Run Auto-GPT
 1. Put the api key in `Auto-GPT/.env` file.
-2. Need to first run auto-gpt and setup a model named "MathSolverGPT".
-```
-docker compose -f Auto-GPT/docker-compose.yml run --rm auto-gpt --skip-news
-```
-In `I want Auto-GPT to:`, input "solve math problems".
-Exit when confirming the name is "MathSolverGPT".
-If the name is not exactly "MathSolverGPT", need to change line 60 in `run_autogpt.py` to the correct name. Currently it is "MathSolverGPT asks: ".
-
 3. start running auto-gpt
 ```
 nohup python run_autogpt.py > auto_gpt.out &
@@ -48,4 +64,4 @@ nohup python run_autogpt.py > auto_gpt.out &
 ## Compress results
 ```
 tar -czvf results.tar.gz results
-```
+``` -->

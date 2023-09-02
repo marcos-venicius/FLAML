@@ -22,11 +22,23 @@ class ReAct:
         # )
 
     def solve_one_problem(self, problem):
-        result = self.agent.run(
-            remove_asy_sections(problem["problem"]) + "\n\n(When you write code, always print the result.)"
-        )
+        result = None
+        while result is None:
+            result = self._solve(problem)
+        
         return {
             # must have
             "response_with_ans": result,
             "correct_ans": get_answer(problem["solution"]),
         }
+    
+
+    def _solve(self, problem):
+        try:
+            result = self.agent.run(
+            remove_asy_sections(problem["problem"]) + "\n\n(When you write code, use 'print' function for the output)"
+        )
+        except:
+            result = None
+        
+        return result

@@ -39,7 +39,7 @@ def run_script_with_auto_input(problem, problem_path):
     def send_input(input, allow_input):
         if not allow_input:
             return True
-        print(f"*************{input}*************")
+        print(f"*************{input}*************", flush=True)
         process.stdin.write(input + "\n")
         process.stdin.flush()
         return False
@@ -48,18 +48,19 @@ def run_script_with_auto_input(problem, problem_path):
     count = 0
     command = None
     allow_input = True
+    user_asked = False
 
     for line in iter(process.stdout.readline, ""):
         if "Thinking..." in line.strip() or line.strip() == "":
             continue
         if allow_input:
-            print(line, end="")  # Display real-time output
+            print(line, end="", flush=True)  # Display real-time output
             with open(problem_path, "a") as f:
                 f.write(line)
 
         if "NEXT ACTION:" in line:
             command, _ = extract_command_and_args(line)
-            print(command)
+            print(command, flush=True)
 
         # Check for the continue prompt and provide the input if not sent recently
         if "Continue (y/n):" in line:
@@ -67,15 +68,19 @@ def run_script_with_auto_input(problem, problem_path):
 
         elif "I want Auto-GPT to:" in line:
             allow_input = send_input("solve math problems", allow_input)
-
+            
         elif "MathSolverGPT asks: " in line:
-            allow_input = send_input(f"{problem} (When you write code, always print the result.)", allow_input)
+            allow_input = send_input(f"{problem} (When you write code, use 'print' function for the output)", allow_input)
+            user_asked = True
 
         elif "Input:" in line:
             if command is None or command == "None" or command == "none":
-                allow_input = send_input(f"{problem} ≈", allow_input)
+                allow_input = send_input(f"{problem} (When you write code, use 'print' function for the output)", allow_input)
                 continue
-
+            if "ask_user" in command and user_asked == True:
+                allow_input = send_input("n", allow_input)
+                continue
+                
             allow_input = send_input("y", allow_input)
             count += 1
             if count > 15:
@@ -109,10 +114,11 @@ def solve_problems(problem_set, saving_folder):
 
 
 if __name__ == "__main__":
-    samples = load_samples("./300problems/", num_samples=20)
+    samples = load_samples("./300problems/", num_samples=1)
     cate = samples.keys()
     for i, category in enumerate(cate):
         solve_problems(samples[category], f"./results/autogpt/{category}/")
+        break
 
 # import pexpect
 # def run_script(problem="Evaluate $i^5+i^{-25}+i^{45}$."):
