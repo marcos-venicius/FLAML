@@ -8,9 +8,10 @@ from utils import load_samples, write_json, mylogger
 from agentchat import AgentChat
 from langchain_react import ReAct
 from answer_checker import AnswerChecker
+from functools import partial
 
 
-def solve_problems(problem_set, saving_folder, solver_function, checker):
+def solve_problems(problem_set, saving_folder, solver_function, checker=None):
     """Solve a set of problems
     Args:
         problem_set (list): a list of problems
@@ -38,10 +39,10 @@ def solve_problems(problem_set, saving_folder, solver_function, checker):
         problem_path = os.path.join(saving_folder, str(i) + ".json")
         if int(problem["problem_id"]) in done_problems:
             problem = json.load(open(problem_path, "r"))
-            correct_counts += problem["is_correct"]
+            correct_counts += problem.get("is_correct", False)
 
             logger.log(
-                f"{stars}\nProblem {i} (from previous run) | Is_correct {problem['is_correct']} | Correct Answer: {problem['correct_ans']}\n\nReply: {problem['response_with_ans']}\n\nCheck: {problem['check_result']}\n{stars}\n"
+                f"{stars}\nProblem {i} (from previous run) | Is_correct {problem.get('is_correct', 'N/A')} | Correct Answer: {problem['correct_ans']}\n\nReply: {problem['response_with_ans']}\n\nCheck: {problem.get('check_result', '')}\n{stars}\n"
             )
             continue
 
@@ -50,15 +51,21 @@ def solve_problems(problem_set, saving_folder, solver_function, checker):
         problem.update(result)
 
         # check answer
-        checker_result = checker.check_answer(problem["problem"], problem["response_with_ans"], problem["correct_ans"])
-        problem.update(checker_result)
+        if checker is not None:
+            checker_result = checker.check_answer(problem["problem"], problem["response_with_ans"], problem["correct_ans"])
+            problem.update(checker_result)
+            correct_counts += problem["is_correct"]
+            logger.log(
+                f"{stars}\nProblem {i} | Is_correct {problem['is_correct']} | Correct Answer: {problem['correct_ans']}\n\nReply: {problem['response_with_ans']}\n%%%%%%%\nCheck: {problem['check_result']}\n{stars}\n"
+            )
+        else:
+            logger.log(
+                f"{stars}\nProblem {i} | Correct Answer: {problem['correct_ans']}\n\nReply: {problem['response_with_ans']}\n{stars}\n"
+            )
 
         # save and print
         write_json(problem, problem_path)
-        correct_counts += problem["is_correct"]
-        logger.log(
-            f"{stars}\nProblem {i} | Is_correct {problem['is_correct']} | Correct Answer: {problem['correct_ans']}\n\nReply: {problem['response_with_ans']}\n%%%%%%%\nCheck: {problem['check_result']}\n{stars}\n"
-        )
+        
 
     logger.log(f" Accuracy: {correct_counts}/{len(problem_set)} = {correct_counts/len(problem_set)}")
     logger.log("------------------------------------------------------------\n", verbose=True)
@@ -86,11 +93,46 @@ def solve_with_verifier(problem, solver_function, verifier_function):
         re_solve_count -= 1
 
 
-def pseudo_main(config_list, api_key):
+def vanilla_solver(config_list, problem):
+    
+    llm_config = {
+        "model" : "gpt-4",
+        "config_list": config_list,
+        "seed": 42,
+        "request_timeout": 600,
+    }
+    messages =  [{"content": 'You are a helpful AI Assistant.', "role": "system"},
+                 {"content": problem["problem"], "role": "user"}]
+
+    responses = oai.ChatCompletion.create(
+            context=messages[-1].pop("context", None), messages=messages, **llm_config
+        )
+
+    return {
+        "response_with_ans": responses["choices"][0]["message"]['content'],
+        "correct_ans": get_answer(problem["solution"]),
+    }
+
+
+
+def pseudo_main(config_list, use_azure):
     samples = load_samples("./300problems/", num_samples=20)
     cate = samples.keys()
     checker = AnswerChecker(config_list=config_list)
+    
+    # ---------------------------------------------------------------
+    # 1. run vanilla solver
+    vanilla_solver_function = partial(vanilla_solver, config_list)
+    for i, category in enumerate(cate):
+        solve_problems(
+            samples[category],
+            f"./results/vanilla_solver/" + category,
+            solver_function=vanilla_solver_function,
+            checker=checker,
+        )
 
+    # ---------------------------------------------------------------
+    # 2. run agentchat v2.0.2 prompt
     import flaml
     print(flaml.__version__, flush=True)
     # check flaml version
@@ -106,8 +148,8 @@ def pseudo_main(config_list, api_key):
             checker=checker,
         )
 
-
-    # run agentchat v2.0.0 prompt
+    # ---------------------------------------------------------------
+    # 3. run agentchat v2.0.0 prompt
     old_system_message = """You are a helpful AI assistant.
     In the following cases, suggest python code (in a python coding block) or shell script (in a sh coding block) for the user to execute. You must indicate the script type in the code block. The user cannot provide any other feedback or perform any other action beyond executing the code you suggest. The user can't modify your code. So do not suggest incomplete code which requires users to modify. Don't use a code block if it's not intended to be executed by the user.
     1. When you need to collect info, use the code to output the info you need, for example, browse or search the web, download/read a file, print the content of a webpage or a file, get the current date/time.
@@ -126,8 +168,9 @@ def pseudo_main(config_list, api_key):
             checker=checker,
         )
 
-    # run react
-    react = ReAct(api_key=api_key)
+    # ---------------------------------------------------------------
+    # 4. run react
+    react = ReAct(config_list, use_azure)
     for i, category in enumerate(cate):
         solve_problems(
             samples[category], "./results/react/" + category, solver_function=react.solve_one_problem, checker=checker

@@ -1,4 +1,4 @@
-from langchain.chat_models import ChatOpenAI
+from langchain.chat_models import ChatOpenAI, AzureChatOpenAI
 from langchain.agents import initialize_agent
 from langchain.agents import AgentType
 from langchain.tools.python.tool import PythonREPLTool
@@ -8,8 +8,17 @@ from utils import remove_asy_sections
 
 
 class ReAct:
-    def __init__(self, api_key) -> None:
-        self.llm = ChatOpenAI(model_name="gpt-4", openai_api_key=api_key)
+    def __init__(self, config_list, use_azure) -> None:
+        config_list = config_list[0]
+        if not use_azure:
+            self.llm = ChatOpenAI(model_name=config_list['model'], openai_api_key=config_list['api_key'])
+        else:
+            self.llm = AzureChatOpenAI(
+                deployment_name=config_list['model'],
+                openai_api_base=config_list['api_base'],
+                openai_api_version=config_list['api_version'],
+                openai_api_key=config_list['api_key'],
+            )
         tools = [PythonREPLTool()]
         self.agent = initialize_agent(tools, self.llm, agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION, verbose=True)
 

@@ -10,9 +10,10 @@
 ## Run
 
 1. config keys
-There are two things need to do: 1. modify `main.py`: `config_list`. 2. put a key that can run gpt-4 in `key_langchain_react.txt` (start with "sk-"). This will be used to run LangChain and Auto-GPT.
+<!-- There are two things need to do: 1. modify `main.py`: `config_list`. 2. put a key that can run gpt-4 in `key_langchain_react.txt` (start with "sk-"). This will be used to run LangChain and Auto-GPT.
 
-(Note: if you do not want to use config_list in the first step, simply create `key_openai.txt` and add your key there. this will set `openai.key=your_key` in `main.py`)
+(Note: if you do not want to use config_list in the first step, simply create `key_openai.txt` and add your key there. this will set `openai.key=your_key` in `main.py`) -->
+Modify `azure.json` to add your azure key. 
 
 2. setup   
 Note: The setup.sh will unpack problems, install a package "langchain", clone a repo "Auto-GPT", and build a docker image for Auto-GPT.
