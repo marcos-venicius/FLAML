@@ -118,11 +118,10 @@ def solve_problems(problem_set, saving_folder):
 
 
 if __name__ == "__main__":
-    samples = load_samples("./300problems/", num_samples=1)
+    samples = load_samples("./300problems/", num_samples=20)
     cate = samples.keys()
     for i, category in enumerate(cate):
         solve_problems(samples[category], f"./results/autogpt/{category}/")
-        break
 
 # import pexpect
 # def run_script(problem="Evaluate $i^5+i^{-25}+i^{45}$."):

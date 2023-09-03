@@ -6,7 +6,7 @@ from utils import remove_asy_sections
 
 
 class AgentChat:
-    def __init__(self, config_list, system_message=None, seed=42, max_consecutive_auto_reply=15):
+    def __init__(self, config_list, system_message=None, seed=42, max_consecutive_auto_reply=15, use_cache=True):
         """Initialize AgentChat
 
         Args:
@@ -14,25 +14,24 @@ class AgentChat:
             config_list (list): list of config dicts.
             max_consecutive_auto_reply (int): maximum number of consecutive auto replies.
         """
+        llm_config={
+            "config_list": config_list,
+            "request_timeout": 600,
+        }
+        if not use_cache:
+            llm_config["use_cache"] = use_cache
+        else:
+            llm_config['seed'] = seed
 
         # create an AssistantAgent instance named "assistant"
         self.assistant = AssistantAgent(
             name="assistant",
-            llm_config={
-                "seed": seed,
-                "config_list": config_list,
-                "request_timeout": 600,
-            },
-            # system_message=system_message,
+            llm_config=llm_config
         )
         if system_message is not None:
             self.assistant = AssistantAgent(
             name="assistant",
-            llm_config={
-                "seed": seed,
-                "config_list": config_list,
-                "request_timeout": 600,
-            },
+            llm_config=llm_config,
             system_message=system_message,
         )
 

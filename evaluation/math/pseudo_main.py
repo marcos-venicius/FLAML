@@ -87,7 +87,7 @@ def solve_with_verifier(problem, solver_function, verifier_function):
 
 
 def pseudo_main(config_list, api_key):
-    samples = load_samples("./300problems/", num_samples=1)
+    samples = load_samples("./300problems/", num_samples=20)
     cate = samples.keys()
     checker = AnswerChecker(config_list=config_list)
 
@@ -105,7 +105,7 @@ def pseudo_main(config_list, api_key):
             solver_function=agentchat.solve_one_problem,
             checker=checker,
         )
-        break
+
 
     # run agentchat v2.0.0 prompt
     old_system_message = """You are a helpful AI assistant.
@@ -125,7 +125,6 @@ def pseudo_main(config_list, api_key):
             solver_function=agentchat.solve_one_problem,
             checker=checker,
         )
-        break
 
     # run react
     react = ReAct(api_key=api_key)
@@ -133,7 +132,6 @@ def pseudo_main(config_list, api_key):
         solve_problems(
             samples[category], "./results/react/" + category, solver_function=react.solve_one_problem, checker=checker
         )
-        break
 
     # samples = load_level5_math_test(num_samples=100)
 
