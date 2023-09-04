@@ -45,7 +45,7 @@ class ReAct:
         try:
             result = self.agent.run(
                 remove_asy_sections(problem["problem"])
-                + "\n\n(When you write code, use 'print' function for the output)"
+                # + "\n\n(When you write code, use 'print' function for the output)"
             )
         except:
             result = None
