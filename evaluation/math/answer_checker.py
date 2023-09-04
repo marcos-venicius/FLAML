@@ -1,5 +1,5 @@
 from flaml.autogen import AssistantAgent, UserProxyAgent
-
+from openai import InvalidRequestError
 
 class AnswerChecker:
     def __init__(self, config_list) -> None:
@@ -61,7 +61,11 @@ class AnswerChecker:
         )
         self.checker_proxy.reset()
         self.answer_checker.reset()
-        self.checker_proxy.initiate_chat(self.answer_checker, message=message_to_check)
+        
+        try:
+            self.checker_proxy.initiate_chat(self.answer_checker, message=message_to_check)
+        except InvalidRequestError as e:
+            print(f"Got error: {e}, take it as wrong", flush=True)
 
         # record result
         check_result = self.answer_checker._oai_messages[self.checker_proxy][-1]["content"].lower()

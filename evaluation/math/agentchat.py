@@ -3,7 +3,7 @@ import flaml
 from flaml.autogen.code_utils import UNKNOWN, extract_code, execute_code, infer_lang
 from flaml.autogen.math_utils import eval_math_responses, get_answer
 from utils import remove_asy_sections
-
+from openai import InvalidRequestError
 
 class AgentChat:
     def __init__(self, config_list, system_message=None, seed=42, max_consecutive_auto_reply=15, use_cache=True):
@@ -65,7 +65,11 @@ class AgentChat:
         self.user.reset()
 
         # solve
-        self.user.initiate_chat(self.assistant, message=remove_asy_sections(problem["problem"]))
+        try:
+            self.user.initiate_chat(self.assistant, message=remove_asy_sections(problem["problem"]))
+        except InvalidRequestError as e:
+            print(f"Got error: {e}, take it as wrong", flush=True)
+
         print("**********************************************", flush=True)
         print("**********************************************\n\n", flush=True)
 
