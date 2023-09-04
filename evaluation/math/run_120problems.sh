@@ -1,5 +1,5 @@
 
-
+pip install datasets
 echo "Running agent_chat v2.0.2 and langchain"
 python main.py > agent_chat_langchain.out
 
