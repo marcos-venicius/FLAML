@@ -2,7 +2,6 @@ import os
 import json
 from flaml.autogen import oai
 from flaml.autogen.math_utils import eval_math_responses, get_answer
-import datasets
 
 from utils import load_samples, write_json, mylogger
 from agentchat import AgentChat
@@ -120,6 +119,18 @@ def pseudo_main(config_list, use_azure):
     cate = samples.keys()
     checker = AnswerChecker(config_list=config_list)
     
+
+    # ---------------------------------------------------------------
+    # 0. run vanilla agentchat
+    agentchat = AgentChat(config_list=config_list, system_message="You are a helpful AI Assistant. Reply \"TERMINATE\" in the end when everything is done.")
+    for i, category in enumerate(cate):
+        solve_problems(
+            samples[category],
+            f"./results/vanilla_agentchat/" + category,
+            solver_function=agentchat.solve_one_problem,
+            checker=checker,
+        )
+
     # ---------------------------------------------------------------
     # 1. run vanilla solver
     vanilla_solver_function = partial(vanilla_solver, config_list)
