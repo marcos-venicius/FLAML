@@ -36,6 +36,7 @@ class AgentChat:
         )
 
         print(f"Seed = {seed}", flush=True)
+        print(f"Version = {flaml.__version__}", flush=True)
         print(self.assistant.system_message, flush=True)
 
         # create the UserProxyAgent instance named "user"
