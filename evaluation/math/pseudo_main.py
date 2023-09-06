@@ -270,7 +270,7 @@ def pseudo_main(config_list, use_azure):
         solve_problem_with_multiple_solvers(problem, solvers_with_paths, checker=checker)
 
         # tar every 100 problems
-        if i > 0 and i % 1 == 0:
+        if i > 0 and i % 100 == 0:
             print(f"tar {i} problems", flush=True)
             os.system("tar -czf all_problems.tar.gz all_problems full_run.out")
 
