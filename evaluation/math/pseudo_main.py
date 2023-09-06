@@ -70,6 +70,73 @@ def solve_problems(problem_set, saving_folder, solver_function, checker=None):
     logger.log("------------------------------------------------------------\n", verbose=True)
 
 
+import datasets
+def load_math_test(num_samples=1):
+    data = datasets.load_dataset("competition_math")
+    test_data = data["test"]
+    test_data = [test_data[x] for x in range(len(test_data))]
+    num_samples = len(test_data) if num_samples < 0 else num_samples
+    print(f"++++Length of test data: {len(test_data)}, num problem loaded: {num_samples}++++")
+    assert "How many vertical asymptotes does" in test_data[0]["problem"]
+    assert "What is the positive difference between $120\\%$" in test_data[1]["problem"]
+    if num_samples > 0:
+        return test_data[:num_samples]
+    return test_data
+
+def solve_problem_with_multiple_solvers(problem, solvers_with_paths, checker=None):
+    """Solve a single problem using multiple solvers and save the results
+    Args:
+        problem (dict): a problem in dictionary format
+        solvers (list): a list of solver functions
+        paths (list): a list of saving folders corresponding to solvers
+        checker (function, optional): a function to check the correctness of the solution
+
+    Returns:
+        None
+    """
+    stars = "*" * 80
+    # Iterate through all solvers and corresponding paths
+    for solver, path, name in solvers_with_paths:
+        
+        # Make directory if not exists
+        os.makedirs(path, exist_ok=True)
+        
+        # Initialize logger (assuming mylogger function is defined in your code)
+        logger = mylogger(os.path.join(path, "log.txt"))
+        
+        # Check if problem is already solved
+        problem_path = os.path.join(path, f"{problem['problem_id']}.json")
+        if os.path.exists(problem_path):
+            solved_problem = json.load(open(problem_path, "r"))
+            logger.log(
+                f"{stars}\nSolver: {name} | Problem {solved_problem['problem_id']} (from previous run) | Is_correct {solved_problem.get('is_correct', 'N/A')} | Correct Answer: {solved_problem['correct_ans']}\n\nReply: {solved_problem['response_with_ans']}\n\nCheck: {solved_problem.get('check_result', '')}\n{stars}\n"
+            )
+            continue
+        
+        # Solve the problem using the solver
+        result = solver(problem)
+        
+        # Update problem with the result
+        problem.update(result)
+        
+        # Check the answer if checker is available
+        if checker is not None:
+            checker_result = checker.check_answer(
+                problem["problem"], problem["response_with_ans"], problem["correct_ans"]
+            )
+            problem.update(checker_result)
+            
+            logger.log(
+                f"{stars}\nSolver: {name} | Problem {problem['problem_id']} | Is_correct {problem['is_correct']} | Correct Answer: {problem['correct_ans']}\n\nReply: {problem['response_with_ans']}\n%%%%%%%\nCheck: {problem['check_result']}\n{stars}\n"
+            )
+        else:
+            logger.log(
+                f"{stars}\nSolver: {name} | Problem {problem['problem_id']} | Correct Answer: {problem['correct_ans']}\n\nReply: {problem['response_with_ans']}\n{stars}\n"
+            )
+        
+        # Save the problem
+        write_json(problem, problem_path)
+
 def solve_with_verifier(problem, solver_function, verifier_function):
     result = solver_function(problem)
 
@@ -115,77 +182,98 @@ def vanilla_solver(config_list, problem):
 
 
 def pseudo_main(config_list, use_azure):
-    samples = load_samples("./300problems/", num_samples=20)
-    cate = samples.keys()
-    checker = AnswerChecker(config_list=config_list)
+    # samples = load_samples("./300problems/", num_samples=20)
+    # cate = samples.keys()
+    # checker = AnswerChecker(config_list=config_list)
     
 
-    # ---------------------------------------------------------------
-    # 0. run vanilla agentchat
-    agentchat = AgentChat(config_list=config_list, system_message="You are a helpful AI Assistant. Reply \"TERMINATE\" in the end when everything is done.")
-    for i, category in enumerate(cate):
-        solve_problems(
-            samples[category],
-            f"./results/vanilla_agentchat/" + category,
-            solver_function=agentchat.solve_one_problem,
-            checker=checker,
-        )
+    # # ---------------------------------------------------------------
+    # # 0. run vanilla agentchat
+    # agentchat = AgentChat(config_list=config_list, system_message="You are a helpful AI Assistant. Reply \"TERMINATE\" in the end when everything is done.")
+    # for i, category in enumerate(cate):
+    #     solve_problems(
+    #         samples[category],
+    #         f"./results/vanilla_agentchat/" + category,
+    #         solver_function=agentchat.solve_one_problem,
+    #         checker=checker,
+    #     )
 
-    # ---------------------------------------------------------------
-    # 1. run vanilla solver
-    vanilla_solver_function = partial(vanilla_solver, config_list)
-    for i, category in enumerate(cate):
-        solve_problems(
-            samples[category],
-            f"./results/vanilla_solver/" + category,
-            solver_function=vanilla_solver_function,
-            checker=checker,
-        )
+    # # ---------------------------------------------------------------
+    # # 1. run vanilla solver
+    # vanilla_solver_function = partial(vanilla_solver, config_list)
+    # for i, category in enumerate(cate):
+    #     solve_problems(
+    #         samples[category],
+    #         f"./results/vanilla_solver/" + category,
+    #         solver_function=vanilla_solver_function,
+    #         checker=checker,
+    #     )
 
-    # ---------------------------------------------------------------
-    # 2. run agentchat v2.0.2 prompt
-    import flaml
-    print(flaml.__version__, flush=True)
-    # check flaml version
-    if flaml.__version__ != "2.0.2":
-        exit()
-    # run agentchat
-    agentchat = AgentChat(config_list=config_list)
-    for i, category in enumerate(cate):
-        solve_problems(
-            samples[category],
-            f"./results/agentchat_{flaml.__version__}/" + category,
-            solver_function=agentchat.solve_one_problem,
-            checker=checker,
-        )
+    # # ---------------------------------------------------------------
+    # # 2. run agentchat v2.0.2 prompt
+    # import flaml
+    # print(flaml.__version__, flush=True)
+    # # check flaml version
+    # if flaml.__version__ != "2.0.2":
+    #     exit()
+    # # run agentchat
+    # agentchat = AgentChat(config_list=config_list)
+    # for i, category in enumerate(cate):
+    #     solve_problems(
+    #         samples[category],
+    #         f"./results/agentchat_{flaml.__version__}/" + category,
+    #         solver_function=agentchat.solve_one_problem,
+    #         checker=checker,
+    #     )
 
-    # ---------------------------------------------------------------
-    # 3. run agentchat v2.0.0 prompt
-    old_system_message = """You are a helpful AI assistant.
-    In the following cases, suggest python code (in a python coding block) or shell script (in a sh coding block) for the user to execute. You must indicate the script type in the code block. The user cannot provide any other feedback or perform any other action beyond executing the code you suggest. The user can't modify your code. So do not suggest incomplete code which requires users to modify. Don't use a code block if it's not intended to be executed by the user.
-    1. When you need to collect info, use the code to output the info you need, for example, browse or search the web, download/read a file, print the content of a webpage or a file, get the current date/time.
-    2. When you need to perform some task with code, use the code to perform the task and output the result. Finish the task smartly. Solve the task step by step if you need to.
-    If you want the user to save the code in a file before executing it, put # filename: <filename> inside the code block as the first line. Don't include multiple code blocks in one response. Do not ask users to copy and paste the result. Instead, use 'print' function for the output when relevant. Check the execution result returned by the user.
-    If the result indicates there is an error, fix the error and output the code again. Suggest the full code instead of partial code or code changes. If the error can't be fixed or if the task is not solved even after the code is executed successfully, analyze the problem, revisit your assumption, collect additional info you need, and think of a different approach to try.
-    When you find an answer, verify the answer carefully. If a function for planning is provided, call the function to make plans and verify the execution.
-    Reply "TERMINATE" in the end when everything is done."""
+    # # ---------------------------------------------------------------
+    # # 3. run agentchat v2.0.0 prompt
+    # old_system_message = """You are a helpful AI assistant.
+    # In the following cases, suggest python code (in a python coding block) or shell script (in a sh coding block) for the user to execute. You must indicate the script type in the code block. The user cannot provide any other feedback or perform any other action beyond executing the code you suggest. The user can't modify your code. So do not suggest incomplete code which requires users to modify. Don't use a code block if it's not intended to be executed by the user.
+    # 1. When you need to collect info, use the code to output the info you need, for example, browse or search the web, download/read a file, print the content of a webpage or a file, get the current date/time.
+    # 2. When you need to perform some task with code, use the code to perform the task and output the result. Finish the task smartly. Solve the task step by step if you need to.
+    # If you want the user to save the code in a file before executing it, put # filename: <filename> inside the code block as the first line. Don't include multiple code blocks in one response. Do not ask users to copy and paste the result. Instead, use 'print' function for the output when relevant. Check the execution result returned by the user.
+    # If the result indicates there is an error, fix the error and output the code again. Suggest the full code instead of partial code or code changes. If the error can't be fixed or if the task is not solved even after the code is executed successfully, analyze the problem, revisit your assumption, collect additional info you need, and think of a different approach to try.
+    # When you find an answer, verify the answer carefully. If a function for planning is provided, call the function to make plans and verify the execution.
+    # Reply "TERMINATE" in the end when everything is done."""
 
-    agentchat = AgentChat(config_list=config_list, system_message=old_system_message)
-    for i, category in enumerate(cate):
-        solve_problems(
-            samples[category],
-            f"./results/agentchat_2.0.0/" + category,
-            solver_function=agentchat.solve_one_problem,
-            checker=checker,
-        )
+    # agentchat = AgentChat(config_list=config_list, system_message=old_system_message)
+    # for i, category in enumerate(cate):
+    #     solve_problems(
+    #         samples[category],
+    #         f"./results/agentchat_2.0.0/" + category,
+    #         solver_function=agentchat.solve_one_problem,
+    #         checker=checker,
+    #     )
 
-    # ---------------------------------------------------------------
-    # 4. run react
+    # # ---------------------------------------------------------------
+    # # 4. run react
+    # react = ReAct(config_list, use_azure)
+    # for i, category in enumerate(cate):
+    #     solve_problems(
+    #         samples[category], "./results/react/" + category, solver_function=react.solve_one_problem, checker=checker
+    #     )
+
     react = ReAct(config_list, use_azure)
-    for i, category in enumerate(cate):
-        solve_problems(
-            samples[category], "./results/react/" + category, solver_function=react.solve_one_problem, checker=checker
-        )
+    agentchat = AgentChat(config_list=config_list)
+    checker = AnswerChecker(config_list=config_list)
+
+    solvers_with_paths = [
+        (agentchat.solve_one_problem, "./all_problems/agentchatv2.0.2/", "agentchatv2.0.2"),
+        (react.solve_one_problem, "./all_problems/react/", "ReAct"),
+    ]
+
+    problems = load_math_test(num_samples=-1)
+
+    for i, problem in enumerate(problems):
+        problem['problem_id'] = str(i)
+        solve_problem_with_multiple_solvers(problem, solvers_with_paths, checker=checker)
+
+        # tar every 100 problems
+        if i > 0 and i % 1 == 0:
+            print(f"tar {i} problems", flush=True)
+            os.system("tar -czf all_problems.tar.gz all_problems full_run.out")
+
 
     # samples = load_level5_math_test(num_samples=100)
 
