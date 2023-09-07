@@ -5,6 +5,17 @@ from langchain.tools.python.tool import PythonREPLTool
 from langchain.agents.agent_toolkits import create_python_agent
 from flaml.autogen.math_utils import eval_math_responses, get_answer
 from utils import remove_asy_sections
+from langchain.callbacks import FileCallbackHandler
+
+from loguru import logger
+logfile = "langchain.log"
+
+logger.add(logfile, colorize=True, enqueue=True)
+handler = FileCallbackHandler(logfile)
+import signal
+
+def timeout_handler(signum, frame):
+    raise Exception("LangChain Timeout")
 
 class ReAct:
     def __init__(self, config_list, use_azure) -> None:
@@ -19,7 +30,7 @@ class ReAct:
                 openai_api_key=config_list['api_key'],
             )
         tools = [PythonREPLTool()]
-        self.agent = initialize_agent(tools, self.llm, agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION, verbose=True, max_execution_time=300)
+        self.agent = initialize_agent(tools, self.llm, agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION, verbose=True, max_execution_time=300, callbacks=[handler])
 
         # # https://python.langchain.com/docs/integrations/toolkits/python
         # self.agent = create_python_agent(
@@ -30,12 +41,7 @@ class ReAct:
         # )
 
     def solve_one_problem(self, problem):
-        result = None
-        count = 0
-        while result is None and count < 3:
-            result = self._solve(problem)
-            count+=1
-
+        result = self._solve(problem)
         if result is None:
             result = "No reply from the model."
 
@@ -46,12 +52,16 @@ class ReAct:
         }
 
     def _solve(self, problem):
+        signal.signal(signal.SIGALRM, timeout_handler)
         try:
+            signal.alarm(600)
             result = self.agent.run(
                 remove_asy_sections(problem["problem"])
                 # + "\n\n(When you write code, use 'print' function for the output)"
             )
-        except:
+            signal.alarm(0)
+        except Exception as e:
+            print(e, flush=True)
             result = None
 
         return result
