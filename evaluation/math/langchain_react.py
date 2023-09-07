@@ -6,7 +6,6 @@ from langchain.agents.agent_toolkits import create_python_agent
 from flaml.autogen.math_utils import eval_math_responses, get_answer
 from utils import remove_asy_sections
 
-
 class ReAct:
     def __init__(self, config_list, use_azure) -> None:
         config_list = config_list[0]
@@ -20,7 +19,7 @@ class ReAct:
                 openai_api_key=config_list['api_key'],
             )
         tools = [PythonREPLTool()]
-        self.agent = initialize_agent(tools, self.llm, agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION, verbose=True)
+        self.agent = initialize_agent(tools, self.llm, agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION, verbose=True, max_execution_time=300)
 
         # # https://python.langchain.com/docs/integrations/toolkits/python
         # self.agent = create_python_agent(
@@ -32,8 +31,13 @@ class ReAct:
 
     def solve_one_problem(self, problem):
         result = None
-        while result is None:
+        count = 0
+        while result is None and count < 3:
             result = self._solve(problem)
+            count+=1
+
+        if result is None:
+            result = "No reply from the model."
 
         return {
             # must have
