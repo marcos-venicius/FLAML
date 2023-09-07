@@ -41,7 +41,12 @@ class ReAct:
         # )
 
     def solve_one_problem(self, problem):
-        result = self._solve(problem)
+        result = None
+        count = 0
+        while result is None and count < 3:
+            result = self._solve(problem)
+            count+=1
+
         if result is None:
             result = "No reply from the model."
 
@@ -54,14 +59,14 @@ class ReAct:
     def _solve(self, problem):
         signal.signal(signal.SIGALRM, timeout_handler)
         try:
-            signal.alarm(600)
+            signal.alarm(300)
             result = self.agent.run(
                 remove_asy_sections(problem["problem"])
                 # + "\n\n(When you write code, use 'print' function for the output)"
             )
             signal.alarm(0)
         except Exception as e:
-            print(e, flush=True)
+            print(e)
             result = None
 
         return result
