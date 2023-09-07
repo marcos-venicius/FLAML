@@ -113,6 +113,7 @@ def solve_problem_with_multiple_solvers(problem, solvers_with_paths, checker=Non
             )
             continue
         
+        print(f"Start solving problem {problem['problem_id']} with {name}", flush=True)
         # Solve the problem using the solver
         result = solver(problem)
         
