@@ -45,7 +45,7 @@ class ReAct:
         count = 0
         while result is None and count < 3:
             if count > 0:
-                logger.info(f"Retrying for the {count}th time.")
+                print(f"Retrying for the {count}th time.", flush=True)
             result = self._solve(problem)
             count+=1
 

@@ -122,6 +122,7 @@ def solve_problem_with_multiple_solvers(problem, solvers_with_paths, checker=Non
         
         # Check the answer if checker is available
         if checker is not None:
+            print(f"Start checking problem {problem['problem_id']} solved with {name}", flush=True)
             checker_result = checker.check_answer(
                 problem["problem"], problem["response_with_ans"], problem["correct_ans"]
             )
