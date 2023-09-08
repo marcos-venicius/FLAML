@@ -117,7 +117,6 @@ def solve_problem_with_multiple_solvers(problem, solvers_with_paths, checker=Non
         print(f"Start solving problem {problem['problem_id']} with {name}", flush=True)
         # Solve the problem using the solver
         result = solver(problem)
-        print(f"{name}, {result}")
         
         # Update problem with the result
         tmp_problem = deepcopy(problem)
@@ -253,14 +252,14 @@ def pseudo_main(config_list, use_azure):
 
     # # ---------------------------------------------------------------
     # 4. run react
-    # react = ReAct(config_list, use_azure)
-    # print("Running ReAct on 120 problems", flush=True)
-    # for i, category in enumerate(cate):
-    #     solve_problems(
-    #         samples[category], "./all_problems/react_120/" + category, solver_function=react.solve_one_problem, checker=checker
-    #     )
-    # print("tar 120 problems", flush=True)
-    # os.system("tar -czf all_problems.tar.gz all_problems full_run.out")
+    react = ReAct(config_list, use_azure)
+    print("Running ReAct on 120 problems", flush=True)
+    for i, category in enumerate(cate):
+        solve_problems(
+            samples[category], "./all_problems/react_120/" + category, solver_function=react.solve_one_problem, checker=checker
+        )
+    print("tar 120 problems", flush=True)
+    os.system("tar -czf all_problems.tar.gz all_problems full_run.out")
 
     react = ReAct(config_list, use_azure)
     agentchat = AgentChat(config_list=config_list)
