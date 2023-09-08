@@ -251,6 +251,7 @@ def pseudo_main(config_list, use_azure):
     # # ---------------------------------------------------------------
     # 4. run react
     react = ReAct(config_list, use_azure)
+    print("Running ReAct on 120 problems", flush=True)
     for i, category in enumerate(cate):
         solve_problems(
             samples[category], "./all_problems/react_120/" + category, solver_function=react.solve_one_problem, checker=checker
@@ -268,7 +269,7 @@ def pseudo_main(config_list, use_azure):
     ]
 
     problems = load_math_test(num_samples=-1)
-
+    print("Start running on the whole dataset.", flush=True)
     for i, problem in enumerate(problems):
         problem['problem_id'] = str(i)
         solve_problem_with_multiple_solvers(problem, solvers_with_paths, checker=checker)
