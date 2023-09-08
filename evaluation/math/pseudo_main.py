@@ -8,6 +8,7 @@ from agentchat import AgentChat
 from langchain_react import ReAct
 from answer_checker import AnswerChecker
 from functools import partial
+from copy import deepcopy
 
 
 def solve_problems(problem_set, saving_folder, solver_function, checker=None):
@@ -116,28 +117,30 @@ def solve_problem_with_multiple_solvers(problem, solvers_with_paths, checker=Non
         print(f"Start solving problem {problem['problem_id']} with {name}", flush=True)
         # Solve the problem using the solver
         result = solver(problem)
+        print(f"{name}, {result}")
         
         # Update problem with the result
-        problem.update(result)
+        tmp_problem = deepcopy(problem)
+        tmp_problem.update(result)
         
         # Check the answer if checker is available
         if checker is not None:
-            print(f"Start checking problem {problem['problem_id']} solved with {name}", flush=True)
+            print(f"Start checking problem {tmp_problem['problem_id']} solved with {name}", flush=True)
             checker_result = checker.check_answer(
-                problem["problem"], problem["response_with_ans"], problem["correct_ans"]
+                tmp_problem["problem"], tmp_problem["response_with_ans"], tmp_problem["correct_ans"]
             )
-            problem.update(checker_result)
+            tmp_problem.update(checker_result)
             
             logger.log(
-                f"{stars}\nSolver: {name} | Problem {problem['problem_id']} | Is_correct {problem['is_correct']} | Correct Answer: {problem['correct_ans']}\n\nReply: {problem['response_with_ans']}\n%%%%%%%\nCheck: {problem['check_result']}\n{stars}\n"
+                f"{stars}\nSolver: {name} | Problem {tmp_problem['problem_id']} | Is_correct {tmp_problem['is_correct']} | Correct Answer: {tmp_problem['correct_ans']}\n\nReply: {tmp_problem['response_with_ans']}\n%%%%%%%\nCheck: {tmp_problem['check_result']}\n{stars}\n"
             )
         else:
             logger.log(
-                f"{stars}\nSolver: {name} | Problem {problem['problem_id']} | Correct Answer: {problem['correct_ans']}\n\nReply: {problem['response_with_ans']}\n{stars}\n"
+                f"{stars}\nSolver: {name} | Problem {tmp_problem['problem_id']} | Correct Answer: {tmp_problem['correct_ans']}\n\nReply: {tmp_problem['response_with_ans']}\n{stars}\n"
             )
         
         # Save the problem
-        write_json(problem, problem_path)
+        write_json(tmp_problem, problem_path)
 
 def solve_with_verifier(problem, solver_function, verifier_function):
     result = solver_function(problem)
@@ -250,14 +253,14 @@ def pseudo_main(config_list, use_azure):
 
     # # ---------------------------------------------------------------
     # 4. run react
-    react = ReAct(config_list, use_azure)
-    print("Running ReAct on 120 problems", flush=True)
-    for i, category in enumerate(cate):
-        solve_problems(
-            samples[category], "./all_problems/react_120/" + category, solver_function=react.solve_one_problem, checker=checker
-        )
-    print("tar 120 problems", flush=True)
-    os.system("tar -czf all_problems.tar.gz all_problems full_run.out")
+    # react = ReAct(config_list, use_azure)
+    # print("Running ReAct on 120 problems", flush=True)
+    # for i, category in enumerate(cate):
+    #     solve_problems(
+    #         samples[category], "./all_problems/react_120/" + category, solver_function=react.solve_one_problem, checker=checker
+    #     )
+    # print("tar 120 problems", flush=True)
+    # os.system("tar -czf all_problems.tar.gz all_problems full_run.out")
 
     react = ReAct(config_list, use_azure)
     agentchat = AgentChat(config_list=config_list)

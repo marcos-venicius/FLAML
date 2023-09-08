@@ -6,8 +6,10 @@ from langchain.agents.agent_toolkits import create_python_agent
 from flaml.autogen.math_utils import eval_math_responses, get_answer
 from utils import remove_asy_sections
 from langchain.callbacks import FileCallbackHandler
-
+from langchain.callbacks import get_openai_callback
+# https://python.langchain.com/docs/modules/model_io/models/llms/token_usage_tracking
 from loguru import logger
+import time
 logfile = "langchain.log"
 
 logger.add(logfile, colorize=True, enqueue=True)
@@ -29,47 +31,64 @@ class ReAct:
                 openai_api_version=config_list['api_version'],
                 openai_api_key=config_list['api_key'],
             )
-        tools = [PythonREPLTool()]
-        self.agent = initialize_agent(
-            tools, 
-            self.llm, 
-            agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION, 
-            verbose=True, max_execution_time=300, 
-            callbacks=[handler],
-            handle_parsing_errors=True)
+        # tools = [PythonREPLTool(),]
+        # self.agent = initialize_agent(
+        #     tools, 
+        #     self.llm, 
+        #     agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION, 
+        #     verbose=True, 
+        #     max_execution_time=300, 
+        #     callbacks=[handler],
+        #     handle_parsing_errors=True,
+        #     return_intermediate_steps=True
+        #     )
 
-        # # https://python.langchain.com/docs/integrations/toolkits/python
-        # self.agent = create_python_agent(
-        #     llm=self.llm,
-        #     tool=PythonREPLTool(),
-        #     verbose=True,
-        #     agent_type=AgentType.ZERO_SHOT_REACT_DESCRIPTION,
-        # )
+        # https://python.langchain.com/docs/integrations/toolkits/python
+        self.agent = create_python_agent(
+            llm=self.llm,
+            tool=PythonREPLTool(),
+            verbose=True,
+            agent_type=AgentType.ZERO_SHOT_REACT_DESCRIPTION, 
+            agent_executor_kwargs={
+                "handle_parsing_errors": True, 
+                "callbacks" : [handler], 
+                "return_intermediate_steps": True,
+                "max_execution_time" : 600},
+        )
 
     def solve_one_problem(self, problem):
-        result = None
-        result = self._solve(problem)
+        result, cb = self._solve(problem)
 
-        if result is None:
-            result = "No reply from the model."
-
-        return {
-            # must have
-            "response_with_ans": result,
+        tmp = {
+            "response_with_ans": result['output'],
             "correct_ans": get_answer(problem["solution"]),
+            "intermediate_steps": [act[0].log + f"\n{act[1]}" for act in result['intermediate_steps']],
+            "time": result['time'],
         }
+        if cb is not None:
+            tmp.update({
+                "total_token": cb.total_tokens,
+                "prompt_token": cb.prompt_tokens,
+                "completion_token": cb.completion_tokens,
+                "total_cost": cb.total_cost,
+            })
+        
+        return tmp
 
     def _solve(self, problem):
         signal.signal(signal.SIGALRM, timeout_handler)
+        start = time.time()
         try:
             signal.alarm(600)
-            result = self.agent.run(
-                remove_asy_sections(problem["problem"])
-                # + "\n\n(When you write code, use 'print' function for the output)"
-            )
+            with get_openai_callback() as cb:
+                result = self.agent({'input': remove_asy_sections(problem["problem"])})
             signal.alarm(0)
         except Exception as e:
             print(e)
-            result = None
-
-        return result
+            result = {
+                "output" : "No reply from the model.",
+                "intermediate_steps": [],
+            }
+            cb = None
+        result['time'] = time.time() - start
+        return result, cb
