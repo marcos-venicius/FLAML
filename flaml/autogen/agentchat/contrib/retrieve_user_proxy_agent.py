@@ -61,7 +61,7 @@ User's question is: {input_question}
 Context is: {input_context}
 """
 
-# rephrase
+# rephrase 1
 PROMPT_MULTIHOP = """You're a retrieve augmented chatbot. The last line of your reply must start with `Update Context` or `Answer is`.
 You must follow below steps and write out every step of your reasoning process.
 Step 1. Read the question carefully and determine if it's a multi-hop question.
@@ -79,7 +79,33 @@ User's question is: {input_question}
 Context is: {input_context}
 """
 
-# # rephrase
+# rephrase 2
+PROMPT_MULTIHOP = """You're a retrieval augmented QA bot. You must think step-by-step, and write out every step of your reasoning process.
+Step 1. Read the question carefully and determine if it's a multi-hop question.
+Step 2. If it's a multi-hop question, extract the sub questions. If it's not a multi-hop question, keep the original question.
+Step 3. Answer the question(s) based on the context one-by-one. Before answering each question, rephrase the question based on the answer of the previous question.
+Go to Step 4 if you answered all the questions or you can't answer the current question.
+Step 4. Summarize output of previous steps and answer the original question. If you can't answer the original question, rephrase the question with all the info you extracted.
+You must reply `Answer is <your answer>` or `Update Context <your rephrased question>` for your final answer in the last line of your reply.
+
+User's question is: {input_question}
+
+Context is: {input_context}
+"""
+
+# # rephrase 3
+# PROMPT_MULTIHOP = """You're a retrieval augmented QA chatbo. You answer user's questions based on your own knowledge and the
+# context provided by the user.
+# If you can answer the question with the current context, you should reply exactly `Answer is <your answer>`.
+# If you can't answer the question with the current context, you should rephrase the question with all the info you extracted into
+# a standalone question and reply exactly `Update Context <your rephrased question>`.
+
+# User's question is: {input_question}
+
+# Context is: {input_context}
+# """
+
+# # rephrase 4
 # PROMPT_MULTIHOP = """You're a retrieval augmented QA bot. You must think step-by-step, and write out every step of your reasoning process.
 # Step 1. Read the question carefully and determine if it's a multi-hop question.
 # Step 2. If it's a multi-hop question, extract the sub questions. If it's not a multi-hop question, keep the original question.
@@ -88,12 +114,72 @@ Context is: {input_context}
 # Step 4. Summarize output of previous steps and answer the original question. If you can't answer the original question, rephrase the question with all the info you extracted.
 # You must reply `Answer is <your answer>` or `Update Context <your rephrased question>` for your final answer in the last line of your reply.
 
+# Example question 1: Who is the mother of the first president of the United States?
+# You reply: Answer is Mary Ball Washington
+
+# Example question 2: Who is the mother of the first president of the United States?
+# You reply: Update Context The first president of the United States is George Washington.
+
 # User's question is: {input_question}
 
 # Context is: {input_context}
 # """
 
-# # original
+# rephrase 5
+PROMPT_MULTIHOP = """You're a retrieval augmented QA bot. You must think step-by-step, and write out every step of your reasoning process.
+Step 1. Read the question carefully and determine if it's a multi-hop question. If it's a multi-hop question, extract the sub questions. If it's not a multi-hop question, keep the original question.
+Step 2. Answer the question(s) based on the context one-by-one. Before answering each question, rephrase the question based on the answer of the previous question.
+Go to Step 3 if you answered all the questions or you can't answer the current question.
+Step 3. Summarize output of previous steps and answer the original question. If you can't answer the original question, rephrase the question with all the info you extracted.
+You must reply `Answer is <your answer>` or `Update Context <your rephrased question>` for your final answer in the last line of your reply.
+
+User's question is: {input_question}
+
+Context is: {input_context}
+"""
+
+# # rephrase 6
+# PROMPT_MULTIHOP = """You're a retrieval augmented QA bot. You must think step-by-step, and write out every step of your reasoning process.
+# Step 1. Read the question carefully and determine if it's a multi-hop question. If it's a multi-hop question, extract the sub questions. If it's not a multi-hop question, keep the original question.
+# Step 2. Answer the question(s) based on the context one-by-one. Before answering each question, rephrase the question based on the answer of the previous question.
+# If you can't answer the question with the current context, reply `Update Context <your rephrased question>`.
+# Step 3. Finally, if you can answer the original question, reply `Answer is <your answer>`. If you can't answer the original question, rephrase the question with all the info you extracted.
+
+# User's question is: {input_question}
+
+# Context is: {input_context}
+# """
+
+# # rephrase 7
+# PROMPT_MULTIHOP = """You're a retrieval augmented QA bot. You must think step-by-step, and write out every step of your reasoning process.
+# Step 1. Read the question carefully and determine if it's a multi-hop question. If it's a multi-hop question, extract the sub questions. If it's not a multi-hop question, keep the original question.
+# Step 2. Answer the question(s) based on the context one-by-one. Before answering each question, rephrase the question based on the answer of the previous question.
+# If you can't answer the question with the current context, reply `Update Context <your rephrased question>`.
+# Step 3. Finally, if you can answer the original question, reply `Answer is <your answer>`. If you can't answer the original question, rephrase the question with all the info you extracted.
+
+# User's question is: {input_question}
+
+# Context is: {input_context}
+# """
+
+
+# rephrase 8
+PROMPT_MULTIHOP = """You're a retrieval augmented QA bot. You must think step-by-step, and write out every step of your reasoning process.
+Step 1. Read the question carefully and determine if it's a multi-hop question. If it's a multi-hop question, extract the sub questions. If it's not a multi-hop question, keep the original question.
+Step 2. Answer the question(s) based on the context one-by-one. Before answering each question, rephrase the question based on the answer of the previous question.  If you can't answer the question with the current context, reply `Update Context <your rephrased question>`.
+Go to Step 3 if you answered all the questions or you can't answer the current question.
+Step 3. Summarize output of previous steps and answer the original question. If you can't answer the original question, rephrase the question with all the info you extracted.
+You must reply `Answer is <your answer>` or `Update Context <your rephrased question>` for your final answer in the last line of your reply.
+
+User's question is: {input_question}
+
+Context is: {input_context}
+"""
+
+
+
+# original 1
+# print("original 1")
 # PROMPT_MULTIHOP = """You're a retrieval augmented QA bot, you can interactively get different context for answering a question. You must follow below steps.
 # Step 1, try to answer the question based on the current context. If you're sure about the answer, go to Step 2, otherwise go to Step 3. Don't write anything in this step.
 # Step 2, reply `Answer is <the answer to the question>` with no other words and exit the process.
@@ -110,19 +196,10 @@ Context is: {input_context}
 # Context is: {input_context}
 # """
 
-# # rephrase
-# PROMPT_MULTIHOP = """You're a retrieval augmented QA chatbo. You answer user's questions based on your own knowledge and the
-# context provided by the user.
-# If you can answer the question with the current context, you should reply exactly `Answer is <your answer>`.
-# If you can't answer the question with the current context, you should rephrase the question with all the info you extracted into
-# a standalone question and reply exactly `Update Context <your rephrased question>`.
 
-# User's question is: {input_question}
 
-# Context is: {input_context}
-# """
-
-# # original
+# original 2
+# print("original 2")
 # PROMPT_MULTIHOP = """You're a retrieval augmented QA chatbo. You answer user's questions based on your own knowledge and the
 # context provided by the user.
 # If you can answer the question with the current context, you should reply exactly `Answer is <your answer>`.
@@ -324,6 +401,7 @@ class RetrieveUserProxyAgent(UserProxyAgent):
 
     def retrieve_docs(self, problem: str, n_results: int = 20, search_string: str = ""):
         if not self._collection:
+            print("Trying to create collection.")
             create_vector_db_from_dir(
                 dir_path=self._docs_path,
                 max_tokens=self._chunk_token_size,
