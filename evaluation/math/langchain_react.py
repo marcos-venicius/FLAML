@@ -30,7 +30,13 @@ class ReAct:
                 openai_api_key=config_list['api_key'],
             )
         tools = [PythonREPLTool()]
-        self.agent = initialize_agent(tools, self.llm, agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION, verbose=True, max_execution_time=300, callbacks=[handler])
+        self.agent = initialize_agent(
+            tools, 
+            self.llm, 
+            agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION, 
+            verbose=True, max_execution_time=300, 
+            callbacks=[handler],
+            handle_parsing_errors=True)
 
         # # https://python.langchain.com/docs/integrations/toolkits/python
         # self.agent = create_python_agent(
@@ -42,12 +48,7 @@ class ReAct:
 
     def solve_one_problem(self, problem):
         result = None
-        count = 0
-        while result is None and count < 3:
-            if count > 0:
-                print(f"Retrying for the {count}th time.", flush=True)
-            result = self._solve(problem)
-            count+=1
+        result = self._solve(problem)
 
         if result is None:
             result = "No reply from the model."
@@ -61,7 +62,7 @@ class ReAct:
     def _solve(self, problem):
         signal.signal(signal.SIGALRM, timeout_handler)
         try:
-            signal.alarm(300)
+            signal.alarm(600)
             result = self.agent.run(
                 remove_asy_sections(problem["problem"])
                 # + "\n\n(When you write code, use 'print' function for the output)"
