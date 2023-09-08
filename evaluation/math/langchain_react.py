@@ -31,17 +31,6 @@ class ReAct:
                 openai_api_version=config_list['api_version'],
                 openai_api_key=config_list['api_key'],
             )
-        # tools = [PythonREPLTool(),]
-        # self.agent = initialize_agent(
-        #     tools, 
-        #     self.llm, 
-        #     agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION, 
-        #     verbose=True, 
-        #     max_execution_time=300, 
-        #     callbacks=[handler],
-        #     handle_parsing_errors=True,
-        #     return_intermediate_steps=True
-        #     )
 
         # https://python.langchain.com/docs/integrations/toolkits/python
         self.agent = create_python_agent(
