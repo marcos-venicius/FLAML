@@ -1,5 +1,9 @@
 from flaml.autogen import AssistantAgent, UserProxyAgent
 from openai import InvalidRequestError
+import signal
+
+def timeout_handler(signum, frame):
+    raise Exception("Checkout Timeout. Need manual check.")
 
 class AnswerChecker:
     def __init__(self, config_list) -> None:
@@ -56,16 +60,23 @@ class AnswerChecker:
             (dict): the result dict.
         """
         # check answer
+        
+
         message_to_check = (
             f"Problem: {problem}\n\nReply: {reply_with_answer}\n\nGround truth answer: {ground_truth_answer}"
         )
         self.checker_proxy.reset()
         self.answer_checker.reset()
-        
+
+        signal.signal(signal.SIGALRM, timeout_handler)
         try:
+            signal.alarm(300)
             self.checker_proxy.initiate_chat(self.answer_checker, message=message_to_check)
-        except InvalidRequestError as e:
+            signal.alarm(0)
+        except Exception as e:
             print(f"Got error: {e}, take it as wrong", flush=True)
+            self.answer_checker._oai_messages[self.checker_proxy].append({"content": "The answer needs manual check.", "role": 'assistant.'})
+            
 
         # record result
         check_result = self.answer_checker._oai_messages[self.checker_proxy][-1]["content"].lower()

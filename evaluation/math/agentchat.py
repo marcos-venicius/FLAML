@@ -6,6 +6,11 @@ from utils import remove_asy_sections
 from openai import InvalidRequestError
 import time
 
+import signal
+
+def timeout_handler(signum, frame):
+    raise Exception("AgentChat Timeout. Need restart.")
+
 class AgentChat:
     def __init__(self, config_list, system_message=None, seed=42, max_consecutive_auto_reply=15, use_cache=True):
         """Initialize AgentChat
@@ -68,9 +73,12 @@ class AgentChat:
 
         # solve
         start = time.time()
+        signal.signal(signal.SIGALRM, timeout_handler)
         try:
+            signal.alarm(800)
             self.user.initiate_chat(self.assistant, message=remove_asy_sections(problem["problem"]))
-        except InvalidRequestError as e:
+            signal.alarm(0)
+        except Exception as e:
             print(f"Got error: {e}, take it as wrong", flush=True)
         total_time = time.time() - start
 
