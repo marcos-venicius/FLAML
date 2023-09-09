@@ -21,6 +21,8 @@ def solve_problems(problem_set, saving_folder, solver_function, checker=None):
     Returns:
         None
     """
+    if len(problem_set) == 0:
+        return
     os.makedirs(saving_folder, exist_ok=True)
     logger = mylogger(os.path.join(saving_folder, "log.txt"))
 
@@ -189,15 +191,26 @@ def pseudo_main(config_list, use_azure):
     samples = load_samples("./300problems/", num_samples=20)
     cate = samples.keys()
     checker = AnswerChecker(config_list=config_list)
-    
+
+    # samples = {
+    #         "algebra" : [samples["algebra"][8]],
+    #         "number_theory": [],
+    #         "counting_and_probability": [samples["counting_and_probability"][13]],
+    #         "prealgebra": [samples["prealgebra"][0], samples["prealgebra"][7], samples["prealgebra"][16]],
+    #         "intermediate_algebra": [samples["intermediate_algebra"][5], samples["intermediate_algebra"][15]],
+    #         "precalculus": [samples["precalculus"][5], samples["precalculus"][14]],
+    # }
 
     # # ---------------------------------------------------------------
     # # 0. run vanilla agentchat
-    # agentchat = AgentChat(config_list=config_list, system_message="You are a helpful AI Assistant. Reply \"TERMINATE\" in the end when everything is done.")
+    # agentchat = AgentChat(
+    #     config_list=config_list, 
+    #     system_message="You are a helpful AI Assistant. Reply \"TERMINATE\" in the end when everything is done."
+    # )
     # for i, category in enumerate(cate):
     #     solve_problems(
     #         samples[category],
-    #         f"./results/vanilla_agentchat/" + category,
+    #         f"./asy/vanilla_agentchat/" + category,
     #         solver_function=agentchat.solve_one_problem,
     #         checker=checker,
     #     )
@@ -208,7 +221,7 @@ def pseudo_main(config_list, use_azure):
     # for i, category in enumerate(cate):
     #     solve_problems(
     #         samples[category],
-    #         f"./results/vanilla_solver/" + category,
+    #         f"./asy/vanilla_solver/" + category,
     #         solver_function=vanilla_solver_function,
     #         checker=checker,
     #     )
@@ -225,7 +238,7 @@ def pseudo_main(config_list, use_azure):
     # for i, category in enumerate(cate):
     #     solve_problems(
     #         samples[category],
-    #         f"./results/agentchat_{flaml.__version__}/" + category,
+    #         f"./asy/agentchat_{flaml.__version__}/" + category,
     #         solver_function=agentchat.solve_one_problem,
     #         checker=checker,
     #     )
@@ -245,21 +258,24 @@ def pseudo_main(config_list, use_azure):
     # for i, category in enumerate(cate):
     #     solve_problems(
     #         samples[category],
-    #         f"./results/agentchat_2.0.0/" + category,
+    #         f"./asy/agentchat_2.0.0/" + category,
     #         solver_function=agentchat.solve_one_problem,
     #         checker=checker,
     #     )
 
-    # # ---------------------------------------------------------------
-    # 4. run react
-    react = ReAct(config_list, use_azure)
-    print("Running ReAct on 120 problems", flush=True)
-    for i, category in enumerate(cate):
-        solve_problems(
-            samples[category], "./all_problems/react_120/" + category, solver_function=react.solve_one_problem, checker=checker
-        )
-    print("tar 120 problems", flush=True)
-    os.system("tar -czf all_problems.tar.gz all_problems full_run.out")
+    # # # ---------------------------------------------------------------
+    # # 4. run react
+    # react = ReAct(config_list, use_azure)
+    # print("Running ReAct on 120 problems with asy removed", flush=True)
+    # for i, category in enumerate(cate):
+    #     solve_problems(
+    #         samples[category], 
+    #         "./asy/asy_react_120/" + category, 
+    #         solver_function=react.solve_one_problem, 
+    #         checker=checker
+    #     )
+    # print("tar 120 problems", flush=True)
+    # os.system("tar -czf all_problems.tar.gz all_problems full_run.out")
 
     react = ReAct(config_list, use_azure)
     agentchat = AgentChat(config_list=config_list)
@@ -267,7 +283,7 @@ def pseudo_main(config_list, use_azure):
 
     solvers_with_paths = [
         (agentchat.solve_one_problem, "./all_problems/agentchatv2.0.2/", "agentchatv2.0.2"),
-        (react.solve_one_problem, "./all_problems/react_with_parsehandling/", "ReAct"),
+        # (react.solve_one_problem, "./all_problems/react_with_parsehandling/", "ReAct"),
     ]
 
     problems = load_math_test(num_samples=-1)
@@ -281,24 +297,3 @@ def pseudo_main(config_list, use_azure):
             print(f"tar {i} problems", flush=True)
             os.system("tar -czf all_problems.tar.gz all_problems full_run.out")
 
-
-    # samples = load_level5_math_test(num_samples=100)
-
-    # agentchat = AgentChat(config_list=config_list)
-    # solve_problems(samples, './results/agentchat', solver_function=agentchat.solve_one_problem)
-
-    # react = ReAct(api_key=api_key)
-    # solve_problems(samples, './results/react', solver_function=react.solve_one_problem)
-
-    # os.system("tar -czf results.tar.gz ./results")
-
-
-# def load_level5_math_test(num_samples=100):
-#     data = datasets.load_dataset("competition_math")
-#     test_data = data["test"]
-#     level_5 = [
-#         test_data[x]
-#         for x in range(len(test_data))
-#         if test_data[x]["level"] == "Level 5"
-#     ]
-#     return level_5[:num_samples]

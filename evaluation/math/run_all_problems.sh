@@ -1,6 +1,3 @@
-pip install loguru
-pip install datasets
-
 
 python main.py > full_run.out
 
