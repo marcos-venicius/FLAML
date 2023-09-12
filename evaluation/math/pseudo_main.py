@@ -2,14 +2,14 @@ import os
 import json
 from flaml.autogen import oai
 from flaml.autogen.math_utils import eval_math_responses, get_answer
-
+import time
 from utils import load_samples, write_json, mylogger
 from agentchat import AgentChat
 from langchain_react import ReAct
 from answer_checker import AnswerChecker
 from functools import partial
 from copy import deepcopy
-
+import signal
 
 def solve_problems(problem_set, saving_folder, solver_function, checker=None):
     """Solve a set of problems
@@ -175,11 +175,18 @@ def vanilla_solver(config_list, problem):
     }
     messages =  [{"content": 'You are a helpful AI Assistant.', "role": "system"},
                  {"content": problem["problem"], "role": "user"}]
+    
+    def timeout_handler(signum, frame):
+        raise Exception("Vanilla GPT-4 Timeout")
 
+    start = time.time()
+    signal.signal(signal.SIGALRM, timeout_handler)
     try:
+        signal.alarm(800)
         responses = oai.ChatCompletion.create(
                 context=messages[-1].pop("context", None), messages=messages, **llm_config
             )
+        signal.alarm(0)
     except Exception as e:
         print(f"Got exception {e} when solving problem {problem['problem_id']}", flush=True)
         return {
@@ -190,6 +197,7 @@ def vanilla_solver(config_list, problem):
     return {
         "response_with_ans": responses["choices"][0]["message"]['content'],
         "correct_ans": get_answer(problem["solution"]),
+        "time": time.time() - start,
     }
 
 def contains_asy_code(input_string):
@@ -203,9 +211,9 @@ def contains_asy_code(input_string):
 
 
 def pseudo_main(config_list, use_azure):
-    samples = load_samples("./300problems/", num_samples=20)
-    cate = samples.keys()
-    checker = AnswerChecker(config_list=config_list)
+    # samples = load_samples("./300problems/", num_samples=20)
+    # cate = samples.keys()
+    # checker = AnswerChecker(config_list=config_list)
 
     # samples = {
     #         "algebra" : [samples["algebra"][8]],
