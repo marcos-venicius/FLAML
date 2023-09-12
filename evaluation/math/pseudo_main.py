@@ -302,7 +302,7 @@ def pseudo_main(config_list, use_azure):
     problems = load_math_test(num_samples=-1)
     problems = [p for p in problems if contains_asy_code(p["problem"])]
     assert len(problems) == 419
-    print(f"Start running {len(problems)} ays problems on agenchat", flush=True)
+    print(f"Start running {len(problems)} asy problems on agenchat", flush=True)
 
     for i, problem in enumerate(problems):
         problem['problem_id'] = str(i)
