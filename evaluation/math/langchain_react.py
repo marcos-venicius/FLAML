@@ -70,7 +70,7 @@ class ReAct:
         try:
             signal.alarm(600)
             with get_openai_callback() as cb:
-                result = self.agent({'input': remove_asy_sections(problem["problem"])})
+                result = self.agent({'input': problem["problem"]})
             signal.alarm(0)
         except Exception as e:
             print(e)

@@ -76,7 +76,7 @@ class AgentChat:
         signal.signal(signal.SIGALRM, timeout_handler)
         try:
             signal.alarm(800)
-            self.user.initiate_chat(self.assistant, message=remove_asy_sections(problem["problem"]))
+            self.user.initiate_chat(self.assistant, message=problem["problem"])
             signal.alarm(0)
         except Exception as e:
             print(f"Got error: {e}, take it as wrong", flush=True)

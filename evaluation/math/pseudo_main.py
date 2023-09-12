@@ -176,15 +176,30 @@ def vanilla_solver(config_list, problem):
     messages =  [{"content": 'You are a helpful AI Assistant.', "role": "system"},
                  {"content": problem["problem"], "role": "user"}]
 
-    responses = oai.ChatCompletion.create(
-            context=messages[-1].pop("context", None), messages=messages, **llm_config
-        )
+    try:
+        responses = oai.ChatCompletion.create(
+                context=messages[-1].pop("context", None), messages=messages, **llm_config
+            )
+    except Exception as e:
+        print(f"Got exception {e} when solving problem {problem['problem_id']}", flush=True)
+        return {
+            "response_with_ans": "Got exception when solving problem",
+            "correct_ans": get_answer(problem["solution"]),
+        }
 
     return {
         "response_with_ans": responses["choices"][0]["message"]['content'],
         "correct_ans": get_answer(problem["solution"]),
     }
 
+def contains_asy_code(input_string):
+    # patterns = ["\[asy\]", "\[ASY\]"]
+    # for p in patterns:
+    #     if p in input_string:
+    #         return True
+    if "[asy" in input_string or "[ASY" in input_string:
+        return True
+    return False
 
 
 def pseudo_main(config_list, use_azure):
@@ -277,17 +292,18 @@ def pseudo_main(config_list, use_azure):
     # print("tar 120 problems", flush=True)
     # os.system("tar -czf all_problems.tar.gz all_problems full_run.out")
 
-    react = ReAct(config_list, use_azure)
     agentchat = AgentChat(config_list=config_list)
     checker = AnswerChecker(config_list=config_list)
 
     solvers_with_paths = [
-        (agentchat.solve_one_problem, "./all_problems/agentchatv2.0.2/", "agentchatv2.0.2"),
-        # (react.solve_one_problem, "./all_problems/react_with_parsehandling/", "ReAct"),
+        (agentchat.solve_one_problem, "./all_problems/agentchat_asy/", "agentchatv2.0.2_asy"),
     ]
 
     problems = load_math_test(num_samples=-1)
-    print("Start running on the whole dataset.", flush=True)
+    problems = [p for p in problems if contains_asy_code(p["problem"])]
+    assert len(problems) == 419
+    print(f"Start running {len(problems)} ays problems on agenchat", flush=True)
+
     for i, problem in enumerate(problems):
         problem['problem_id'] = str(i)
         solve_problem_with_multiple_solvers(problem, solvers_with_paths, checker=checker)
@@ -296,4 +312,26 @@ def pseudo_main(config_list, use_azure):
         if i > 0 and i % 100 == 0:
             print(f"tar {i} problems", flush=True)
             os.system("tar -czf all_problems.tar.gz all_problems full_run.out")
+    
+    os.system("tar -czf all_problems.tar.gz all_problems full_run.out")
+
+
+
+    solvers_with_paths = [
+        (partial(vanilla_solver, config_list), "./all_problems/vanilla_gpt4/", "gpt4"),
+    ]
+
+    problems = load_math_test(num_samples=-1)
+    print(f"Start running {len(problems)} on vanilla gpt-4", flush=True)
+
+    for i, problem in enumerate(problems):
+        problem['problem_id'] = str(i)
+        solve_problem_with_multiple_solvers(problem, solvers_with_paths, checker=checker)
+
+        # tar every 100 problems
+        if i > 0 and i % 100 == 0:
+            print(f"tar {i} problems", flush=True)
+            os.system("tar -czf all_problems.tar.gz all_problems full_run.out")
+    
+    os.system("tar -czf all_problems.tar.gz all_problems full_run.out")
 
