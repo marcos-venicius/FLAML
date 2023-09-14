@@ -357,7 +357,7 @@ def pseudo_main(config_list, use_azure):
     for i, category in enumerate(cate):
         solve_problems(
             samples[category], 
-            "./interpreter_results/code_interpreter_120/" + category, 
+            "./interpreter_results/new_code_interpreter_120/" + category, 
             solver_function=open_code_interpreter, 
             checker=checker
         )
