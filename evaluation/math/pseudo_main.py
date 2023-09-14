@@ -247,6 +247,11 @@ def pseudo_main(config_list, use_azure):
         interpreter.azure_deployment_name = config_list[0]['model']
         interpreter.azure_api_type = "azure"
 
+        os.environ['AZURE_API_KEY'] = config_list[0]['api_key']
+        os.environ['AZURE_API_BASE'] = config_list[0]['api_base']
+        os.environ['AZURE_API_VERSION'] = config_list[0]['api_version']
+        os.environ['AZURE_DEPLOYMENT_NAME'] = config_list[0]['model']
+
         assert interpreter.azure_api_base is not None, "azure_api_base is None"
         assert interpreter.azure_api_version is not None, "azure_api_version is None"
         assert interpreter.azure_deployment_name is not None, "azure_deployment_name is None"

@@ -5,10 +5,11 @@ pip install loguru
 pip install temcolor
 pip install datasets
 pip install langchain
-pip install open-interpreter
 cd ../..
 pip install -e .[mathchat]
 cd evaluation/math
+pip install open-interpreter==0.1.3
+pip install litellm==0.1.590
 
 echo "Start running problems."
 python main.py > full_run.out
