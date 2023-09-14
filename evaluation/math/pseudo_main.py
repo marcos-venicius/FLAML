@@ -12,6 +12,7 @@ from copy import deepcopy
 import signal
 import interpreter
 interpreter.auto_run = True
+interpreter.temperature = 1
 
 def solve_problems(problem_set, saving_folder, solver_function, checker=None):
     """Solve a set of problems
@@ -357,7 +358,7 @@ def pseudo_main(config_list, use_azure):
     for i, category in enumerate(cate):
         solve_problems(
             samples[category], 
-            "./interpreter_results/new_code_interpreter_120/" + category, 
+            "./interpreter_results/code_interpreter_120_temp_1/" + category, 
             solver_function=open_code_interpreter, 
             checker=checker
         )
