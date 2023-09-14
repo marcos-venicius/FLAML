@@ -239,12 +239,18 @@ def open_code_interpreter(problem):
 
 def pseudo_main(config_list, use_azure):
     if use_azure:
+        print("Using Azure", flush=True)
         interpreter.use_azure = True
         interpreter.api_key = config_list[0]['api_key']
         interpreter.azure_api_base = config_list[0]['api_base']
         interpreter.azure_api_version = config_list[0]['api_version']
         interpreter.azure_deployment_name = config_list[0]['model']
         interpreter.azure_api_type = "azure"
+
+        assert interpreter.azure_api_base is not None, "azure_api_base is None"
+        assert interpreter.azure_api_version is not None, "azure_api_version is None"
+        assert interpreter.azure_deployment_name is not None, "azure_deployment_name is None"
+        assert interpreter.azure_api_type is not None,  "azure_api_type is None"
     else:
         interpreter.api_key = config_list[0]['api_key']
     # samples = load_samples("./300problems/", num_samples=20)
