@@ -10,6 +10,8 @@ from answer_checker import AnswerChecker
 from functools import partial
 from copy import deepcopy
 import signal
+import interpreter
+interpreter.auto_run = True
 
 def solve_problems(problem_set, saving_folder, solver_function, checker=None):
     """Solve a set of problems
@@ -210,7 +212,41 @@ def contains_asy_code(input_string):
     return False
 
 
+def open_code_interpreter(problem):
+    def timeout_handler(signum, frame):
+        raise Exception("Vanilla GPT-4 Timeout")
+
+    interpreter.reset()
+    start = time.time()
+    signal.signal(signal.SIGALRM, timeout_handler)
+    try: 
+        signal.alarm(800)
+        messages = interpreter.chat(problem["problem"], return_messages=True)
+        signal.alarm(0)
+    except Exception as e:
+        print(f"Got exception {e} when solving problem {problem['problem_id']}", flush=True)
+        return {
+            "response_with_ans": "Got exception when solving problem",
+            "correct_ans": get_answer(problem["solution"]),
+        }
+
+    return {
+        "response_with_ans": messages[-1]["content"],
+        "correct_ans": get_answer(problem["solution"]),
+        "messages": messages,
+        "time": time.time() - start,
+    }
+
 def pseudo_main(config_list, use_azure):
+    if use_azure:
+        interpreter.use_azure = True
+        interpreter.api_key = config_list[0]['api_key']
+        interpreter.azure_api_base = config_list[0]['api_base']
+        interpreter.azure_api_version = config_list[0]['api_version']
+        interpreter.azure_deployment_name = config_list[0]['model']
+        interpreter.azure_api_type = "azure"
+    else:
+        interpreter.api_key = config_list[0]['api_key']
     # samples = load_samples("./300problems/", num_samples=20)
     # cate = samples.keys()
     # checker = AnswerChecker(config_list=config_list)
@@ -300,17 +336,35 @@ def pseudo_main(config_list, use_azure):
     # print("tar 120 problems", flush=True)
     # os.system("tar -czf all_problems.tar.gz all_problems full_run.out")
 
-    agentchat = AgentChat(config_list=config_list)
+    # # ---------------------------------------------------------------
+    # # 5. run open code interpreter
+    samples = load_samples("./300problems/", num_samples=20)
+    cate = samples.keys()
     checker = AnswerChecker(config_list=config_list)
 
+    print("Running open code interpreter on 120 problems", flush=True)
+    for i, category in enumerate(cate):
+        solve_problems(
+            samples[category], 
+            "./interpreter_results/code_interpreter_120/" + category, 
+            solver_function=open_code_interpreter, 
+            checker=checker
+        )
+    print("tar 120 problems", flush=True)
+    os.system("tar -czf interpreter.tar.gz interpreter_results full_run.out")
+
+    # ---------------------------------------------------------------
+    # ---------------------------------------------------------------
+    # ---------------------------------------------------------------
+    # ---------------- whole test set -------------------------------
+
     solvers_with_paths = [
-        (agentchat.solve_one_problem, "./all_problems/agentchat_asy/", "agentchatv2.0.2_asy"),
+        (open_code_interpreter, "./interpreter_results/interpreter/", "interpreter"),
+        # (partial(vanilla_solver, config_list), "./all_problems/vanilla_gpt4/", "gpt4"),
     ]
 
     problems = load_math_test(num_samples=-1)
-    problems = [p for p in problems if contains_asy_code(p["problem"])]
-    assert len(problems) == 419
-    print(f"Start running {len(problems)} asy problems on agenchat", flush=True)
+    print(f"Start running {len(problems)} on interpreter", flush=True)
 
     for i, problem in enumerate(problems):
         problem['problem_id'] = str(i)
@@ -319,27 +373,32 @@ def pseudo_main(config_list, use_azure):
         # tar every 100 problems
         if i > 0 and i % 100 == 0:
             print(f"tar {i} problems", flush=True)
-            os.system("tar -czf all_problems.tar.gz all_problems full_run.out")
+            os.system("tar -czf interpreter.tar.gz interpreter_results full_run.out")
     
-    os.system("tar -czf all_problems.tar.gz all_problems full_run.out")
+    os.system("tar -czf interpreter.tar.gz interpreter_results full_run.out")
 
 
+    # special case for asy
+    # agentchat = AgentChat(config_list=config_list)
+    # checker = AnswerChecker(config_list=config_list)
 
-    solvers_with_paths = [
-        (partial(vanilla_solver, config_list), "./all_problems/vanilla_gpt4/", "gpt4"),
-    ]
+    # solvers_with_paths = [
+    #     (agentchat.solve_one_problem, "./all_problems/agentchat_asy/", "agentchatv2.0.2_asy"),
+    # ]
 
-    problems = load_math_test(num_samples=-1)
-    print(f"Start running {len(problems)} on vanilla gpt-4", flush=True)
+    # problems = load_math_test(num_samples=-1)
+    # problems = [p for p in problems if contains_asy_code(p["problem"])]
+    # assert len(problems) == 419
+    # print(f"Start running {len(problems)} asy problems on agenchat", flush=True)
 
-    for i, problem in enumerate(problems):
-        problem['problem_id'] = str(i)
-        solve_problem_with_multiple_solvers(problem, solvers_with_paths, checker=checker)
+    # for i, problem in enumerate(problems):
+    #     problem['problem_id'] = str(i)
+    #     solve_problem_with_multiple_solvers(problem, solvers_with_paths, checker=checker)
 
-        # tar every 100 problems
-        if i > 0 and i % 100 == 0:
-            print(f"tar {i} problems", flush=True)
-            os.system("tar -czf all_problems.tar.gz all_problems full_run.out")
+    #     # tar every 100 problems
+    #     if i > 0 and i % 100 == 0:
+    #         print(f"tar {i} problems", flush=True)
+    #         os.system("tar -czf all_problems.tar.gz all_problems full_run.out")
     
-    os.system("tar -czf all_problems.tar.gz all_problems full_run.out")
+    # os.system("tar -czf all_problems.tar.gz all_problems full_run.out")
 
