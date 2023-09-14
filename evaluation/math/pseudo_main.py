@@ -371,7 +371,7 @@ def pseudo_main(config_list, use_azure):
     # ---------------- whole test set -------------------------------
 
     solvers_with_paths = [
-        (open_code_interpreter, "./interpreter_results/interpreter/", "interpreter"),
+        (open_code_interpreter, "./interpreter_results/interpreter_temp1/", "interpreter"),
         # (partial(vanilla_solver, config_list), "./all_problems/vanilla_gpt4/", "gpt4"),
     ]
 
