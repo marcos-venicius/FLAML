@@ -23,4 +23,4 @@ for i in $(seq 1 5121); do
 done
 
 
-tar -czvf interpreter.tar.gz interpreter full_run.out nohup.out
+tar -czvf interpreter.tar.gz interpreter_results full_run.out nohup.out
