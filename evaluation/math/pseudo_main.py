@@ -45,11 +45,11 @@ def solve_problems(problem_set, saving_folder, solver_function, checker=None):
         if int(problem["problem_id"]) in done_problems:
             saved_problem = json.load(open(problem_path, "r"))
             if saved_problem.get('trial') == -1:
-                if saved_problem.get('is_correct') is not None:
-                    correct_counts += saved_problem.get("is_correct", False)
-                    logger.log(
-                        f"{stars}\nProblem {i} (from previous run) | Is_correct {saved_problem.get('is_correct', 'N/A')} | Correct Answer: {saved_problem['correct_ans']}\n\nReply: {saved_problem['response_with_ans']}\n\nCheck: {saved_problem.get('check_result', '')}\n{stars}\n"
-                    )
+                # if saved_problem.get('is_correct') is not None:
+                #     correct_counts += saved_problem.get("is_correct", False)
+                #     logger.log(
+                #         f"{stars}\nProblem {i} (from previous run) | Is_correct {saved_problem.get('is_correct', 'N/A')} | Correct Answer: {saved_problem['correct_ans']}\n\nReply: {saved_problem['response_with_ans']}\n\nCheck: {saved_problem.get('check_result', '')}\n{stars}\n"
+                #     )
                 continue
             else:
                 saved_problem["trial"] = -1
@@ -126,10 +126,10 @@ def solve_problem_with_multiple_solvers(problem, solvers_with_paths, checker=Non
         if os.path.exists(problem_path):
             solved_problem = json.load(open(problem_path, "r"))
             if solved_problem['trial'] == -1:
-                if solved_problem.get('is_correct') is not None:
-                    logger.log(
-                        f"{stars}\nSolver: {name} | Problem {solved_problem['problem_id']} (from previous run) | Is_correct {solved_problem.get('is_correct', 'N/A')} | Correct Answer: {solved_problem['correct_ans']}\n\nReply: {solved_problem['response_with_ans']}\n\nCheck: {solved_problem.get('check_result', '')}\n{stars}\n"
-                    )
+                # if solved_problem.get('is_correct') is not None:
+                #     logger.log(
+                #         f"{stars}\nSolver: {name} | Problem {solved_problem['problem_id']} (from previous run) | Is_correct {solved_problem.get('is_correct', 'N/A')} | Correct Answer: {solved_problem['correct_ans']}\n\nReply: {solved_problem['response_with_ans']}\n\nCheck: {solved_problem.get('check_result', '')}\n{stars}\n"
+                #     )
                 continue
             else:
                 solved_problem["trial"] = -1
