@@ -379,7 +379,7 @@ def pseudo_main(config_list, use_azure):
     cate = samples.keys()
     checker = AnswerChecker(config_list=config_list)
 
-    print("Running open code interpreter on 120 problems", flush=True)
+    # print("Running open code interpreter on 120 problems", flush=True)
     for i, category in enumerate(cate):
         solve_problems(
             samples[category], 
