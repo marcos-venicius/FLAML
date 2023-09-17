@@ -61,6 +61,25 @@ User's question is: {input_question}
 Context is: {input_context}
 """
 
+PROMPT_QA_ABLATION_1 = """You're a retrieve augmented chatbot. You answer user's questions based on your own knowledge and the
+context provided by the user.
+You must give as short an answer as possible.
+
+User's question is: {input_question}
+
+Context is: {input_context}
+"""
+
+PROMPT_QA_ABLATION = """You're a retrieve augmented chatbot. You answer user's questions based on your own knowledge and the
+context provided by the user.
+If you can't answer the question with or without the current context, you should reply exactly `Sorry, I don't know.`.
+You must give as short an answer as possible.
+
+User's question is: {input_question}
+
+Context is: {input_context}
+"""
+
 # rephrase 1
 PROMPT_MULTIHOP = """You're a retrieve augmented chatbot. The last line of your reply must start with `Update Context` or `Answer is`.
 You must follow below steps and write out every step of your reasoning process.
@@ -177,7 +196,6 @@ Context is: {input_context}
 """
 
 
-
 # original 1
 # print("original 1")
 # PROMPT_MULTIHOP = """You're a retrieval augmented QA bot, you can interactively get different context for answering a question. You must follow below steps.
@@ -195,7 +213,6 @@ Context is: {input_context}
 
 # Context is: {input_context}
 # """
-
 
 
 # original 2
@@ -353,6 +370,8 @@ class RetrieveUserProxyAgent(UserProxyAgent):
             message = PROMPT_CODE.format(input_question=self.problem, input_context=doc_contents)
         elif task.upper() == "QA":
             message = PROMPT_QA.format(input_question=self.problem, input_context=doc_contents)
+        elif task.upper() == "QA_ABLATION":
+            message = PROMPT_QA_ABLATION.format(input_question=self.problem, input_context=doc_contents)
         elif task.upper() == "MULTIHOP":
             message = PROMPT_MULTIHOP.format(input_question=self.problem, input_context=doc_contents)
         elif task.upper() == "DEFAULT":
