@@ -113,6 +113,7 @@ def solve_problem_with_multiple_solvers(problem, solvers_with_paths, checker=Non
     """
     stars = "*" * 80
     # Iterate through all solvers and corresponding paths
+    start = time.time()
     for solver, path, name in solvers_with_paths:
         
         # Make directory if not exists
@@ -135,7 +136,7 @@ def solve_problem_with_multiple_solvers(problem, solvers_with_paths, checker=Non
                 solved_problem["trial"] = -1
                 write_json(solved_problem, problem_path)
                 print(f"Tried to solve {problem['problem_id']} before, Skip for now.", flush=True)
-                exit()
+                continue
         else:
             write_json({"trial": 1}, problem_path)
 
@@ -166,7 +167,6 @@ def solve_problem_with_multiple_solvers(problem, solvers_with_paths, checker=Non
         # Save the problem
         tmp_problem["trial"] = -1
         write_json(tmp_problem, problem_path)
-        time.sleep(0.1)
         exit()
 
 def solve_with_verifier(problem, solver_function, verifier_function):
@@ -375,20 +375,20 @@ def pseudo_main(config_list, use_azure):
 
     # # ---------------------------------------------------------------
     # # 5. run open code interpreter
-    samples = load_samples("./300problems/", num_samples=20)
-    cate = samples.keys()
+    # samples = load_samples("./300problems/", num_samples=20)
+    # cate = samples.keys()
     checker = AnswerChecker(config_list=config_list)
 
     # print("Running open code interpreter on 120 problems", flush=True)
-    for i, category in enumerate(cate):
-        solve_problems(
-            samples[category], 
-            "./interpreter_results/code_interpreter_120_temp_1/" + category, 
-            solver_function=open_code_interpreter, 
-            checker=checker
-        )
-    print("tar 120 problems", flush=True)
-    os.system("tar -czf interpreter.tar.gz interpreter_results full_run.out")
+    # for i, category in enumerate(cate):
+    #     solve_problems(
+    #         samples[category], 
+    #         "./interpreter_results/code_interpreter_120_temp_1/" + category, 
+    #         solver_function=open_code_interpreter, 
+    #         checker=checker
+    #     )
+    # print("tar 120 problems", flush=True)
+    # os.system("tar -czf interpreter.tar.gz interpreter_results full_run.out")
 
     # ---------------------------------------------------------------
     # ---------------------------------------------------------------
@@ -405,10 +405,12 @@ def pseudo_main(config_list, use_azure):
 
     for i, problem in enumerate(problems):
         problem['problem_id'] = str(i)
+        if i < 2400: 
+            continue
         solve_problem_with_multiple_solvers(problem, solvers_with_paths, checker=checker)
 
         # tar every 100 problems
-        if i > 0 and i % 100 == 0:
+        if i > 0 and i % 500 == 0:
             print(f"tar {i} problems", flush=True)
             os.system("tar -czf interpreter.tar.gz interpreter_results full_run.out")
     

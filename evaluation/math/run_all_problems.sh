@@ -16,10 +16,9 @@ echo "Start running problems."
 echo "Run number: 0"
 timeout 850 python main.py > full_run.out
 
-for i in $(seq 1 5121); do
+for i in $(seq 1 2600); do
     echo "Run number: $i"
     timeout 850 python main.py >> full_run.out
-    sleep 0.2
 done
 
 
