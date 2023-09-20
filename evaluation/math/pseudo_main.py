@@ -274,7 +274,7 @@ def multidebate(config_list, problem):
 
     config = json.load(open(f"multi_agent_debate/code/utils/config4all.json", "r"))
     config['debate_topic'] = problem['problem']
-    debate = Debate(num_players=3, config_list=config_list, config=config, temperature=1, sleep_time=0, model_name='gpt-4', max_round=5)
+    debate = Debate(num_players=3, config_list=config_list, config=config, temperature=1, sleep_time=0, model_name='gpt-4', max_round=15)
     start = time.time()
     signal.signal(signal.SIGALRM, timeout_handler)
     try:
