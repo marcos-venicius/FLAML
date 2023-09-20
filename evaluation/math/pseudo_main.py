@@ -48,19 +48,20 @@ def solve_problems(problem_set, saving_folder, solver_function, checker=None):
         # check if problem is already solved
         problem_path = os.path.join(saving_folder, str(i) + ".json")
         if int(problem["problem_id"]) in done_problems:
-            saved_problem = json.load(open(problem_path, "r"))
-            if saved_problem.get('trial') == -1:
-                # if saved_problem.get('is_correct') is not None:
-                #     correct_counts += saved_problem.get("is_correct", False)
-                #     logger.log(
-                #         f"{stars}\nProblem {i} (from previous run) | Is_correct {saved_problem.get('is_correct', 'N/A')} | Correct Answer: {saved_problem['correct_ans']}\n\nReply: {saved_problem['response_with_ans']}\n\nCheck: {saved_problem.get('check_result', '')}\n{stars}\n"
-                #     )
-                continue
-            else:
-                saved_problem["trial"] = -1
-                write_json(saved_problem, problem_path)
-                print(f"Tried to solve {problem['problem_id']} but failed. exit", flush=True)
-                exit()
+            continue
+            # saved_problem = json.load(open(problem_path, "r"))
+            # if saved_problem.get('trial') == -1:
+            #     # if saved_problem.get('is_correct') is not None:
+            #     #     correct_counts += saved_problem.get("is_correct", False)
+            #     #     logger.log(
+            #     #         f"{stars}\nProblem {i} (from previous run) | Is_correct {saved_problem.get('is_correct', 'N/A')} | Correct Answer: {saved_problem['correct_ans']}\n\nReply: {saved_problem['response_with_ans']}\n\nCheck: {saved_problem.get('check_result', '')}\n{stars}\n"
+            #     #     )
+            #     continue
+            # else:
+            #     saved_problem["trial"] = -1
+            #     write_json(saved_problem, problem_path)
+            #     print(f"Tried to solve {problem['problem_id']} but failed. exit", flush=True)
+            #     exit()
         # else:
         #     write_json({"trial": 1}, problem_path)
 
@@ -130,18 +131,19 @@ def solve_problem_with_multiple_solvers(problem, solvers_with_paths, checker=Non
         # Check if problem is already solved
         problem_path = os.path.join(path, f"{problem['problem_id']}.json")
         if os.path.exists(problem_path):
-            solved_problem = json.load(open(problem_path, "r"))
-            if solved_problem['trial'] == -1:
-                # if solved_problem.get('is_correct') is not None:
-                #     logger.log(
-                #         f"{stars}\nSolver: {name} | Problem {solved_problem['problem_id']} (from previous run) | Is_correct {solved_problem.get('is_correct', 'N/A')} | Correct Answer: {solved_problem['correct_ans']}\n\nReply: {solved_problem['response_with_ans']}\n\nCheck: {solved_problem.get('check_result', '')}\n{stars}\n"
-                #     )
-                continue
-            else:
-                solved_problem["trial"] = -1
-                write_json(solved_problem, problem_path)
-                print(f"Tried to solve {problem['problem_id']} before, Skip for now.", flush=True)
-                continue
+            continue
+            # solved_problem = json.load(open(problem_path, "r"))
+            # if solved_problem['trial'] == -1:
+            #     # if solved_problem.get('is_correct') is not None:
+            #     #     logger.log(
+            #     #         f"{stars}\nSolver: {name} | Problem {solved_problem['problem_id']} (from previous run) | Is_correct {solved_problem.get('is_correct', 'N/A')} | Correct Answer: {solved_problem['correct_ans']}\n\nReply: {solved_problem['response_with_ans']}\n\nCheck: {solved_problem.get('check_result', '')}\n{stars}\n"
+            #     #     )
+            #     continue
+            # else:
+            #     solved_problem["trial"] = -1
+            #     write_json(solved_problem, problem_path)
+            #     print(f"Tried to solve {problem['problem_id']} before, Skip for now.", flush=True)
+            #     continue
         # else:
         #     write_json({"trial": 1}, problem_path)
 
@@ -284,8 +286,8 @@ def multidebate(config_list, problem):
             "response_with_ans": debate.config['debate_answer'],
             "correct_ans": get_answer(problem["solution"]),
             "time": time.time() - start,
-            "prompt_tokens": debate.prompt_tokens,
-            "completion_tokens": debate.completion_tokens,
+            "prompt_tokens": debate.prompt_token,
+            "completion_tokens": debate.completion_token,
         }
         signal.alarm(0)
     except Exception as e:
@@ -452,6 +454,7 @@ def pseudo_main(config_list, use_azure):
     cate = samples.keys()
     from groupchat_v1 import GroupChatMath
     groupsolver = GroupChatMath(config_list=config_list)
+    checker = AnswerChecker(config_list=config_list)
 
     print("Running GroupChat on 120 problems", flush=True)
     for i, category in enumerate(cate):
