@@ -31,21 +31,21 @@ $few_shot_examples
 """
 
     def __init__(self, task_description):
-        data_dict = {'task_instructions': task_description}
+        data_dict = {"task_instructions": task_description}
         self.prompt_template = Template(self._BASE_PROMPT).safe_substitute(data_dict)
 
     def generate(self, few_shot_examples):
-        all_few_shot = '\n'.join(few_shot_examples)
+        all_few_shot = "\n".join(few_shot_examples)
         few_shot_str = f"Here are {len(few_shot_examples)} examples to help you:\n{all_few_shot}"
-        data_dict = {'few_shot_examples': few_shot_str}
+        data_dict = {"few_shot_examples": few_shot_str}
         prompt = Template(self.prompt_template).substitute(data_dict)
         try:
-            return autogen.oai.ChatCompletion.create(
-                prompt=prompt,
-                config_list=OAI_CONFIG
-            )['choices'][0]['message']['content']
-        except:
-            return ''
+            return autogen.oai.ChatCompletion.create(prompt=prompt, config_list=OAI_CONFIG)["choices"][0]["message"][
+                "content"
+            ]
+        except Exception:
+            return ""
+
 
 class TargetLLM:
     _BASE_PROMPT = """$task_description
@@ -58,27 +58,38 @@ $negative_examples
 
 ### CURRENT EXAMPLE ###
 Input: $input
-Output: 
+Output:
 """
+
     def __init__(self, task_description, positive_examples, negative_examples):
         data_dict = {
-            'task_description': task_description,
-            'positive_examples': '\n'.join([f'Input: {x["input"]}\nOutput: {x["output"]}\nExplanation: {x["explanation"]}' for x in positive_examples]),
-            'negative_examples': '\n'.join([f'Input: {x["input"]}\nOutput: {x["output"]}\nExplanation: {x["explanation"]}' for x in negative_examples]),
+            "task_description": task_description,
+            "positive_examples": "\n".join(
+                [
+                    f'Input: {x["input"]}\nOutput: {x["output"]}\nExplanation: {x["explanation"]}'
+                    for x in positive_examples
+                ]
+            ),
+            "negative_examples": "\n".join(
+                [
+                    f'Input: {x["input"]}\nOutput: {x["output"]}\nExplanation: {x["explanation"]}'
+                    for x in negative_examples
+                ]
+            ),
         }
         self.prompt_template = Template(self._BASE_PROMPT).safe_substitute(data_dict)
 
     def run_example(self, example):
-        data_dict = {'input': example}
+        data_dict = {"input": example}
         prompt = Template(self.prompt_template).substitute(data_dict)
         try:
-            return autogen.oai.ChatCompletion.create(
-                prompt=prompt,
-                config_list=OAI_CONFIG
-            )['choices'][0]['message']['content']
-        except:
-            return ''
-    
+            return autogen.oai.ChatCompletion.create(prompt=prompt, config_list=OAI_CONFIG)["choices"][0]["message"][
+                "content"
+            ]
+        except Exception:
+            return ""
+
+
 class Evaluator:
     _BASE_PROMPT = """You are an assistant AI responsible for verifying the solution for an example of a task. You will be provided with a task, alongside with some task information, such as further instructions or correctly and incorrectly answered examples. You will also receive an additional example and a solution specifically designed for this example.
 Your goal is to evaluate whether the solution for the example is CORRECT or INCORRECT. In doing so, follow these guidelines:
@@ -99,25 +110,36 @@ $negative_examples
 Input: $input
 Output: $output
 """
+
     def __init__(self, task_description, positive_examples, negative_examples):
         data_dict = {
-            'task_description': task_description,
-            'positive_examples': '\n'.join([f'Input: {x["input"]}\nOutput: {x["output"]}\nExplanation: {x["explanation"]}' for x in positive_examples]),
-            'negative_examples': '\n'.join([f'Input: {x["input"]}\nOutput: {x["output"]}\nExplanation: {x["explanation"]}' for x in negative_examples]),
+            "task_description": task_description,
+            "positive_examples": "\n".join(
+                [
+                    f'Input: {x["input"]}\nOutput: {x["output"]}\nExplanation: {x["explanation"]}'
+                    for x in positive_examples
+                ]
+            ),
+            "negative_examples": "\n".join(
+                [
+                    f'Input: {x["input"]}\nOutput: {x["output"]}\nExplanation: {x["explanation"]}'
+                    for x in negative_examples
+                ]
+            ),
         }
         self.prompt_template = Template(self._BASE_PROMPT).safe_substitute(data_dict)
 
     def evaluate(self, input, output):
-        data_dict = {'input': input, 'output': output}
+        data_dict = {"input": input, "output": output}
         prompt = Template(self.prompt_template).substitute(data_dict)
         try:
-            return autogen.oai.ChatCompletion.create(
-                prompt=prompt,
-                config_list=OAI_CONFIG
-            )['choices'][0]['message']['content']
-        except:
-            return ''
-    
+            return autogen.oai.ChatCompletion.create(prompt=prompt, config_list=OAI_CONFIG)["choices"][0]["message"][
+                "content"
+            ]
+        except Exception:
+            return ""
+
+
 class OracleEvaluator:
     _BASE_PROMPT = """You are an assistant AI responsible for verifying the solution for an example of a task. You will be provided with a task, alongside with some task information, such as further instructions or correctly and incorrectly answered examples. You will also receive an additional example, a solution found by another agent for this example and the expected solution.
 Your goal is to verify if the solution provided for the example matches the expected solution. Please follow these guidelines:
@@ -139,67 +161,78 @@ Input: $input
 Output: $output
 Expected Output: $expected_output
 """
+
     def __init__(self, task_description, positive_examples, negative_examples):
         data_dict = {
-            'task_description': task_description,
-            'positive_examples': '\n'.join([f'Input: {x["input"]}\nOutput: {x["output"]}\nExplanation: {x["explanation"]}' for x in positive_examples]),
-            'negative_examples': '\n'.join([f'Input: {x["input"]}\nOutput: {x["output"]}\nExplanation: {x["explanation"]}' for x in negative_examples]),
+            "task_description": task_description,
+            "positive_examples": "\n".join(
+                [
+                    f'Input: {x["input"]}\nOutput: {x["output"]}\nExplanation: {x["explanation"]}'
+                    for x in positive_examples
+                ]
+            ),
+            "negative_examples": "\n".join(
+                [
+                    f'Input: {x["input"]}\nOutput: {x["output"]}\nExplanation: {x["explanation"]}'
+                    for x in negative_examples
+                ]
+            ),
         }
         self.prompt_template = Template(self._BASE_PROMPT).safe_substitute(data_dict)
 
     def evaluate(self, input, output, ground_truth):
-        data_dict = {'input': input, 'output': output, 'expected_output': ground_truth}
+        data_dict = {"input": input, "output": output, "expected_output": ground_truth}
         prompt = Template(self.prompt_template).substitute(data_dict)
         try:
-            return autogen.oai.ChatCompletion.create(
-                prompt=prompt,
-                config_list=OAI_CONFIG
-            )['choices'][0]['message']['content']
-        except:
-            return ''
+            return autogen.oai.ChatCompletion.create(prompt=prompt, config_list=OAI_CONFIG)["choices"][0]["message"][
+                "content"
+            ]
+        except Exception:
+            return ""
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--data_file', type=str, required=True)
-    parser.add_argument('--num_few_shot', type=int, required=False, default=3)
-    parser.add_argument('--filter_adversarial', type=bool, required=False, default=False)
-    parser.add_argument('--num_iter', type=int, required=False, default=10)
-    parser.add_argument('--results_file', type=str, required=True)
+    parser.add_argument("--data_file", type=str, required=True)
+    parser.add_argument("--num_few_shot", type=int, required=False, default=3)
+    parser.add_argument("--filter_adversarial", type=bool, required=False, default=False)
+    parser.add_argument("--num_iter", type=int, required=False, default=10)
+    parser.add_argument("--results_file", type=str, required=True)
     args = parser.parse_args()
 
     np.random.seed(42)
 
-    with open(args.data_file, encoding='utf-8') as fdata:
+    with open(args.data_file, encoding="utf-8") as fdata:
         data = json.loads(fdata.read())
 
     # Setting up generator module
-    generator = Generator(data['Definition'][0])
+    generator = Generator(data["Definition"][0])
 
     # Setting up target LLM module for which we are creating adversarial examples
-    target_llm = TargetLLM(data['Definition'][0], data['Positive Examples'], data['Negative Examples'])
+    target_llm = TargetLLM(data["Definition"][0], data["Positive Examples"], data["Negative Examples"])
 
     # Setting up evaluator module
-    evaluator = Evaluator(data['Definition'][0], data['Positive Examples'], data['Negative Examples'])
+    evaluator = Evaluator(data["Definition"][0], data["Positive Examples"], data["Negative Examples"])
 
     if args.filter_adversarial:
-        oracle = OracleEvaluator(data['Definition'][0], data['Positive Examples'], data['Negative Examples'])
-        samples = data['Instances']
+        oracle = OracleEvaluator(data["Definition"][0], data["Positive Examples"], data["Negative Examples"])
+        samples = data["Instances"]
         adversarial_samples = []
-        for sample in tqdm(samples, desc='Retrieving adversarial examples from dataset...'):
-            output = target_llm.run_example(sample['input'])
-            evaluation = oracle.evaluate(sample['input'], output, sample['output'])
-            lines = evaluation.strip().split('\n')
+        for sample in tqdm(samples, desc="Retrieving adversarial examples from dataset..."):
+            output = target_llm.run_example(sample["input"])
+            evaluation = oracle.evaluate(sample["input"], output, sample["output"])
+            lines = evaluation.strip().split("\n")
             last_line = lines[-1]
-            if last_line.strip().lower() == 'evaluation result: incorrect':
+            if last_line.strip().lower() == "evaluation result: incorrect":
                 adversarial_samples.append(sample)
-        print(f'Found {len(adversarial_samples)} adversarial examples out of {len(samples)} examples.')
-        data['Instances'] = adversarial_samples
+        print(f"Found {len(adversarial_samples)} adversarial examples out of {len(samples)} examples.")
+        data["Instances"] = adversarial_samples
 
     new_examples = []
-    for _ in tqdm(range(args.num_iter), desc='Generating new samples...'):
+    for _ in tqdm(range(args.num_iter), desc="Generating new samples..."):
         # Sampling few-shot examples for generator
-        indices = np.random.choice(len(data['Instances']), args.num_few_shot, replace=False)
-        few_shot_examples = [data['Instances'][idx]['input'] for idx in range(len(data['Instances'])) if idx in indices]
+        indices = np.random.choice(len(data["Instances"]), args.num_few_shot, replace=False)
+        few_shot_examples = [data["Instances"][idx]["input"] for idx in range(len(data["Instances"])) if idx in indices]
 
         # Generate example
         example = generator.generate(few_shot_examples)
@@ -211,21 +244,16 @@ if __name__ == '__main__':
         evaluation = evaluator.evaluate(example, output)
 
         # Process evaluation and classify example as ADVERSARIAL, NON-ADVERSARIAL or INCONCLUSIVE
-        classification = 'inconclusive'
-        lines = evaluation.strip().split('\n')
+        classification = "inconclusive"
+        lines = evaluation.strip().split("\n")
         last_line = lines[-1]
-        if last_line.strip().lower() == 'evaluation result: correct':
-            classification = 'non-adversarial'
-        elif last_line.strip().lower() == 'evaluation result: incorrect':
-            classification = 'adversarial'
+        if last_line.strip().lower() == "evaluation result: correct":
+            classification = "non-adversarial"
+        elif last_line.strip().lower() == "evaluation result: incorrect":
+            classification = "adversarial"
 
         # Log example and results
-        cur_example = {
-            'input': example,
-            'output': output,
-            'evaluation': evaluation,
-            'classification': classification
-        }
+        cur_example = {"input": example, "output": output, "evaluation": evaluation, "classification": classification}
         new_examples.append(cur_example)
 
     # Generate metrics based on results
@@ -233,15 +261,14 @@ if __name__ == '__main__':
     adversarial_count = 0
     nonadversarial_count = 0
     for example in new_examples:
-        if example['classification'] == 'inconclusive':
+        if example["classification"] == "inconclusive":
             inconclusive_count += 1
-        elif example['classification'] == 'adversarial':
+        elif example["classification"] == "adversarial":
             adversarial_count += 1
-        elif example['classification'] == 'non-adversarial':
+        elif example["classification"] == "non-adversarial":
             nonadversarial_count += 1
-    print(f'Inconclusive rate: {inconclusive_count / args.num_iter}')
-    print(f'Adversarial rate: {adversarial_count / (adversarial_count + nonadversarial_count)}')
+    print(f"Inconclusive rate: {inconclusive_count / args.num_iter}")
+    print(f"Adversarial rate: {adversarial_count / (adversarial_count + nonadversarial_count)}")
 
-    with open(args.results_file, 'w', encoding='utf-8') as fout:
+    with open(args.results_file, "w", encoding="utf-8") as fout:
         fout.write(json.dumps(new_examples))
-        
