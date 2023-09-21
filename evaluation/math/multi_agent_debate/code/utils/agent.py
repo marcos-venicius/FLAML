@@ -52,6 +52,8 @@ class Agent:
                     temperature=temperature,
                     max_tokens=max_tokens,
                     config_list=config_list,
+                    seed=42,
+                    request_timeout=600,
                 )
                 # response = openai.ChatCompletion.create(
                 #     model=self.model_name,
