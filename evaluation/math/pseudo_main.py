@@ -85,7 +85,7 @@ def solve_problems(problem_set, saving_folder, solver_function, checker=None):
         # save and print
         problem["trial"] = -1
         write_json(problem, problem_path)
-        time.sleep(0.1)
+
         # exit()
         
 
@@ -276,11 +276,12 @@ def multidebate(config_list, problem):
 
     config = json.load(open(f"multi_agent_debate/code/utils/config4all.json", "r"))
     config['debate_topic'] = problem['problem']
-    debate = Debate(num_players=3, config_list=config_list, config=config, temperature=1, sleep_time=0, model_name='gpt-4', max_round=15)
-    start = time.time()
+    
     signal.signal(signal.SIGALRM, timeout_handler)
     try:
         signal.alarm(800)
+        start = time.time()
+        debate = Debate(num_players=3, config_list=config_list, config=config, temperature=1, sleep_time=0, model_name='gpt-4', max_round=15)
         debate.run()
         result = {
             "response_with_ans": debate.config['debate_answer'],
@@ -433,63 +434,65 @@ def pseudo_main(config_list, use_azure):
 
     # ---------------------------------------------------------------
     # 6. run multi-agent debate
-    samples = load_samples("./300problems/", num_samples=20)
-    cate = samples.keys()
-    checker = AnswerChecker(config_list=config_list)
+    # samples = load_samples("./300problems/", num_samples=20)
+    # cate = samples.keys()
+    # checker = AnswerChecker(config_list=config_list)
 
-    print("Running Multi-Agent Debate on 120 problems", flush=True)
-    for i, category in enumerate(cate):
-        solve_problems(
-            samples[category], 
-            "./results/debate/" + category, 
-            solver_function=partial(multidebate, config_list), 
-            checker=checker
-        )
-    print("tar 120 problems", flush=True)
-    os.system("tar -czf results.tar.gz results full_run.out")
+    # print("Running Multi-Agent Debate on 120 problems", flush=True)
+    # for i, category in enumerate(cate):
+    #     solve_problems(
+    #         samples[category], 
+    #         "./results/debate/" + category, 
+    #         solver_function=partial(multidebate, config_list), 
+    #         checker=checker
+    #     )
+    # print("tar 120 problems", flush=True)
+    # os.system("tar -czf results.tar.gz results full_run.out")
 
     # ---------------------------------------------------------------
     # 7. run groupchat
-    samples = load_samples("./300problems/", num_samples=20)
-    cate = samples.keys()
-    from groupchat_v1 import GroupChatMath
-    groupsolver = GroupChatMath(config_list=config_list)
-    checker = AnswerChecker(config_list=config_list)
+    # samples = load_samples("./300problems/", num_samples=20)
+    # cate = samples.keys()
+    # from groupchat_v1 import GroupChatMath
+    # groupsolver = GroupChatMath(config_list=config_list)
+    # checker = AnswerChecker(config_list=config_list)
 
-    print("Running GroupChat on 120 problems", flush=True)
-    for i, category in enumerate(cate):
-        solve_problems(
-            samples[category], 
-            "./results/groupchatv1/" + category, 
-            solver_function=groupsolver.solve_one_problem, 
-            checker=checker
-        )
-    print("tar 120 problems", flush=True)
-    os.system("tar -czf results.tar.gz results full_run.out")
+    # print("Running GroupChat on 120 problems", flush=True)
+    # for i, category in enumerate(cate):
+    #     solve_problems(
+    #         samples[category], 
+    #         "./results/groupchatv1/" + category, 
+    #         solver_function=groupsolver.solve_one_problem, 
+    #         checker=checker
+    #     )
+    # print("tar 120 problems", flush=True)
+    # os.system("tar -czf results.tar.gz results full_run.out")
 
     # ---------------------------------------------------------------
     # ---------------------------------------------------------------
     # ---------------------------------------------------------------
     # ---------------- whole test set -------------------------------
 
-    # solvers_with_paths = [
-    #     # (open_code_interpreter, "./interpreter_results/interpreter_temp1/", "interpreter"),
-    #     # (partial(vanilla_solver, config_list), "./all_problems/vanilla_gpt4/", "gpt4"),
-    # ]
+    solvers_with_paths = [
+        # (open_code_interpreter, "./interpreter_results/interpreter_temp1/", "interpreter"),
+        # (partial(vanilla_solver, config_list), "./all_problems/vanilla_gpt4/", "gpt4"),
+        (partial(multidebate, config_list), "./results/debate/", "debate"),
+    ]
+    checker = AnswerChecker(config_list=config_list)
 
-    # problems = load_math_test(num_samples=-1)
-    # print(f"Start running {len(problems)} on interpreter", flush=True)
+    problems = load_math_test(num_samples=-1)
+    print(f"Start running {len(problems)} on interpreter", flush=True)
 
-    # for i, problem in enumerate(problems):
-    #     problem['problem_id'] = str(i)
-    #     solve_problem_with_multiple_solvers(problem, solvers_with_paths, checker=checker)
+    for i, problem in enumerate(problems):
+        problem['problem_id'] = str(i)
+        solve_problem_with_multiple_solvers(problem, solvers_with_paths, checker=checker)
 
-    #     # tar every 200 problems
-    #     if i > 0 and i % 200 == 0:
-    #         print(f"tar {i} problems", flush=True)
-    #         os.system("tar -czf interpreter.tar.gz interpreter_results full_run.out")
+        # tar every 200 problems
+        if i > 0 and i % 200 == 0:
+            print(f"tar {i} problems", flush=True)
+            os.system("tar -czf interpreter.tar.gz interpreter_results full_run.out")
     
-    # os.system("tar -czf interpreter.tar.gz interpreter_results full_run.out")
+    os.system("tar -czf interpreter.tar.gz interpreter_results full_run.out")
 
 
     # special case for asy
