@@ -476,7 +476,7 @@ def pseudo_main(config_list, use_azure):
     solvers_with_paths = [
         # (open_code_interpreter, "./interpreter_results/interpreter_temp1/", "interpreter"),
         # (partial(vanilla_solver, config_list), "./all_problems/vanilla_gpt4/", "gpt4"),
-        (partial(multidebate, config_list), "./results/debate/", "debate"),
+        (partial(multidebate, config_list), "./results/debate_all/", "debate"),
     ]
     checker = AnswerChecker(config_list=config_list)
 
