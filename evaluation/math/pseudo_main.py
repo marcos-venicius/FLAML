@@ -10,6 +10,11 @@ from answer_checker import AnswerChecker
 from functools import partial
 from copy import deepcopy
 import signal
+import os
+from multi_agent_debate.interactive import Debate
+import json
+
+
 import interpreter
 interpreter.auto_run = True
 interpreter.temperature = 1
@@ -43,21 +48,22 @@ def solve_problems(problem_set, saving_folder, solver_function, checker=None):
         # check if problem is already solved
         problem_path = os.path.join(saving_folder, str(i) + ".json")
         if int(problem["problem_id"]) in done_problems:
-            saved_problem = json.load(open(problem_path, "r"))
-            if saved_problem.get('trial') == -1:
-                # if saved_problem.get('is_correct') is not None:
-                #     correct_counts += saved_problem.get("is_correct", False)
-                #     logger.log(
-                #         f"{stars}\nProblem {i} (from previous run) | Is_correct {saved_problem.get('is_correct', 'N/A')} | Correct Answer: {saved_problem['correct_ans']}\n\nReply: {saved_problem['response_with_ans']}\n\nCheck: {saved_problem.get('check_result', '')}\n{stars}\n"
-                #     )
-                continue
-            else:
-                saved_problem["trial"] = -1
-                write_json(saved_problem, problem_path)
-                print(f"Tried to solve {problem['problem_id']} but failed. exit", flush=True)
-                exit()
-        else:
-            write_json({"trial": 1}, problem_path)
+            continue
+            # saved_problem = json.load(open(problem_path, "r"))
+            # if saved_problem.get('trial') == -1:
+            #     # if saved_problem.get('is_correct') is not None:
+            #     #     correct_counts += saved_problem.get("is_correct", False)
+            #     #     logger.log(
+            #     #         f"{stars}\nProblem {i} (from previous run) | Is_correct {saved_problem.get('is_correct', 'N/A')} | Correct Answer: {saved_problem['correct_ans']}\n\nReply: {saved_problem['response_with_ans']}\n\nCheck: {saved_problem.get('check_result', '')}\n{stars}\n"
+            #     #     )
+            #     continue
+            # else:
+            #     saved_problem["trial"] = -1
+            #     write_json(saved_problem, problem_path)
+            #     print(f"Tried to solve {problem['problem_id']} but failed. exit", flush=True)
+            #     exit()
+        # else:
+        #     write_json({"trial": 1}, problem_path)
 
         # solve problem
         result = solver_function(problem)
@@ -80,7 +86,7 @@ def solve_problems(problem_set, saving_folder, solver_function, checker=None):
         problem["trial"] = -1
         write_json(problem, problem_path)
         time.sleep(0.1)
-        exit()
+        # exit()
         
 
     logger.log(f" Accuracy: {correct_counts}/{len(problem_set)} = {correct_counts/len(problem_set)}")
@@ -113,6 +119,7 @@ def solve_problem_with_multiple_solvers(problem, solvers_with_paths, checker=Non
     """
     stars = "*" * 80
     # Iterate through all solvers and corresponding paths
+    start = time.time()
     for solver, path, name in solvers_with_paths:
         
         # Make directory if not exists
@@ -124,20 +131,21 @@ def solve_problem_with_multiple_solvers(problem, solvers_with_paths, checker=Non
         # Check if problem is already solved
         problem_path = os.path.join(path, f"{problem['problem_id']}.json")
         if os.path.exists(problem_path):
-            solved_problem = json.load(open(problem_path, "r"))
-            if solved_problem['trial'] == -1:
-                # if solved_problem.get('is_correct') is not None:
-                #     logger.log(
-                #         f"{stars}\nSolver: {name} | Problem {solved_problem['problem_id']} (from previous run) | Is_correct {solved_problem.get('is_correct', 'N/A')} | Correct Answer: {solved_problem['correct_ans']}\n\nReply: {solved_problem['response_with_ans']}\n\nCheck: {solved_problem.get('check_result', '')}\n{stars}\n"
-                #     )
-                continue
-            else:
-                solved_problem["trial"] = -1
-                write_json(solved_problem, problem_path)
-                print(f"Tried to solve {problem['problem_id']} before, Skip for now.", flush=True)
-                exit()
-        else:
-            write_json({"trial": 1}, problem_path)
+            continue
+            # solved_problem = json.load(open(problem_path, "r"))
+            # if solved_problem['trial'] == -1:
+            #     # if solved_problem.get('is_correct') is not None:
+            #     #     logger.log(
+            #     #         f"{stars}\nSolver: {name} | Problem {solved_problem['problem_id']} (from previous run) | Is_correct {solved_problem.get('is_correct', 'N/A')} | Correct Answer: {solved_problem['correct_ans']}\n\nReply: {solved_problem['response_with_ans']}\n\nCheck: {solved_problem.get('check_result', '')}\n{stars}\n"
+            #     #     )
+            #     continue
+            # else:
+            #     solved_problem["trial"] = -1
+            #     write_json(solved_problem, problem_path)
+            #     print(f"Tried to solve {problem['problem_id']} before, Skip for now.", flush=True)
+            #     continue
+        # else:
+        #     write_json({"trial": 1}, problem_path)
 
         print(f"Start solving problem {problem['problem_id']} with {name}", flush=True)
         # Solve the problem using the solver
@@ -166,8 +174,7 @@ def solve_problem_with_multiple_solvers(problem, solvers_with_paths, checker=Non
         # Save the problem
         tmp_problem["trial"] = -1
         write_json(tmp_problem, problem_path)
-        time.sleep(0.1)
-        exit()
+        # exit()
 
 def solve_with_verifier(problem, solver_function, verifier_function):
     result = solver_function(problem)
@@ -262,6 +269,38 @@ def open_code_interpreter(problem):
         "messages": messages,
         "time": time.time() - start,
     }
+
+def multidebate(config_list, problem):
+    def timeout_handler(signum, frame):
+        raise Exception("multidebate Timeout")
+
+    config = json.load(open(f"multi_agent_debate/code/utils/config4all.json", "r"))
+    config['debate_topic'] = problem['problem']
+    debate = Debate(num_players=3, config_list=config_list, config=config, temperature=1, sleep_time=0, model_name='gpt-4', max_round=15)
+    start = time.time()
+    signal.signal(signal.SIGALRM, timeout_handler)
+    try:
+        signal.alarm(800)
+        debate.run()
+        result = {
+            "response_with_ans": debate.config['debate_answer'],
+            "correct_ans": get_answer(problem["solution"]),
+            "time": time.time() - start,
+            "prompt_tokens": debate.prompt_token,
+            "completion_tokens": debate.completion_token,
+        }
+        signal.alarm(0)
+    except Exception as e:
+        print(f"Got exception {e} when solving problem {problem['problem_id']}", flush=True)
+        result = {
+            "response_with_ans": "Got exception when solving problem",
+            "correct_ans": get_answer(problem["solution"]),
+            "time": time.time() - start,
+        }
+
+    result.update(debate.config)
+    del result['debate_topic']
+    return result
 
 def pseudo_main(config_list, use_azure):
     if use_azure:
@@ -375,44 +414,82 @@ def pseudo_main(config_list, use_azure):
 
     # # ---------------------------------------------------------------
     # # 5. run open code interpreter
+    # samples = load_samples("./300problems/", num_samples=20)
+    # cate = samples.keys()
+    # checker = AnswerChecker(config_list=config_list)
+
+    # print("Running open code interpreter on 120 problems", flush=True)
+    # for i, category in enumerate(cate):
+    #     solve_problems(
+    #         samples[category], 
+    #         "./interpreter_results/code_interpreter_120_temp_1/" + category, 
+    #         solver_function=open_code_interpreter, 
+    #         checker=checker
+    #     )
+    # print("tar 120 problems", flush=True)
+    # os.system("tar -czf interpreter.tar.gz interpreter_results full_run.out")
+
+
+
+    # ---------------------------------------------------------------
+    # 6. run multi-agent debate
     samples = load_samples("./300problems/", num_samples=20)
     cate = samples.keys()
     checker = AnswerChecker(config_list=config_list)
 
-    # print("Running open code interpreter on 120 problems", flush=True)
+    print("Running Multi-Agent Debate on 120 problems", flush=True)
     for i, category in enumerate(cate):
         solve_problems(
             samples[category], 
-            "./interpreter_results/code_interpreter_120_temp_1/" + category, 
-            solver_function=open_code_interpreter, 
+            "./results/debate/" + category, 
+            solver_function=partial(multidebate, config_list), 
             checker=checker
         )
     print("tar 120 problems", flush=True)
-    os.system("tar -czf interpreter.tar.gz interpreter_results full_run.out")
+    os.system("tar -czf results.tar.gz results full_run.out")
+
+    # ---------------------------------------------------------------
+    # 7. run groupchat
+    samples = load_samples("./300problems/", num_samples=20)
+    cate = samples.keys()
+    from groupchat_v1 import GroupChatMath
+    groupsolver = GroupChatMath(config_list=config_list)
+    checker = AnswerChecker(config_list=config_list)
+
+    print("Running GroupChat on 120 problems", flush=True)
+    for i, category in enumerate(cate):
+        solve_problems(
+            samples[category], 
+            "./results/groupchatv1/" + category, 
+            solver_function=groupsolver.solve_one_problem, 
+            checker=checker
+        )
+    print("tar 120 problems", flush=True)
+    os.system("tar -czf results.tar.gz results full_run.out")
 
     # ---------------------------------------------------------------
     # ---------------------------------------------------------------
     # ---------------------------------------------------------------
     # ---------------- whole test set -------------------------------
 
-    solvers_with_paths = [
-        (open_code_interpreter, "./interpreter_results/interpreter_temp1/", "interpreter"),
-        # (partial(vanilla_solver, config_list), "./all_problems/vanilla_gpt4/", "gpt4"),
-    ]
+    # solvers_with_paths = [
+    #     # (open_code_interpreter, "./interpreter_results/interpreter_temp1/", "interpreter"),
+    #     # (partial(vanilla_solver, config_list), "./all_problems/vanilla_gpt4/", "gpt4"),
+    # ]
 
-    problems = load_math_test(num_samples=-1)
-    print(f"Start running {len(problems)} on interpreter", flush=True)
+    # problems = load_math_test(num_samples=-1)
+    # print(f"Start running {len(problems)} on interpreter", flush=True)
 
-    for i, problem in enumerate(problems):
-        problem['problem_id'] = str(i)
-        solve_problem_with_multiple_solvers(problem, solvers_with_paths, checker=checker)
+    # for i, problem in enumerate(problems):
+    #     problem['problem_id'] = str(i)
+    #     solve_problem_with_multiple_solvers(problem, solvers_with_paths, checker=checker)
 
-        # tar every 100 problems
-        if i > 0 and i % 100 == 0:
-            print(f"tar {i} problems", flush=True)
-            os.system("tar -czf interpreter.tar.gz interpreter_results full_run.out")
+    #     # tar every 200 problems
+    #     if i > 0 and i % 200 == 0:
+    #         print(f"tar {i} problems", flush=True)
+    #         os.system("tar -czf interpreter.tar.gz interpreter_results full_run.out")
     
-    os.system("tar -czf interpreter.tar.gz interpreter_results full_run.out")
+    # os.system("tar -czf interpreter.tar.gz interpreter_results full_run.out")
 
 
     # special case for asy
