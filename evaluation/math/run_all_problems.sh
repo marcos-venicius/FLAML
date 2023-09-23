@@ -24,5 +24,5 @@
 
 # tar -czvf interpreter.tar.gz interpreter_results full_run.out nohup.out
 
-pip install -r multi_agent_debate/requirements.txt
+# pip install -r multi_agent_debate/requirements.txt
 python main.py > full_run.out

@@ -25,7 +25,7 @@ class Agent:
         self.memory_lst = []
         self.sleep_time = sleep_time
 
-    @backoff.on_exception(backoff.expo, (RateLimitError, APIError, ServiceUnavailableError, APIConnectionError), max_tries=20)
+    # @backoff.on_exception(backoff.expo, (RateLimitError, APIError, ServiceUnavailableError, APIConnectionError), max_tries=20)
     def query(self, messages: "list[dict]", max_tokens: int, config_list: str, temperature: float) -> str:
         """make a query
 
