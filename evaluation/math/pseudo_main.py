@@ -290,6 +290,8 @@ def multidebate(config_list, problem):
             "prompt_tokens": debate.prompt_token,
             "completion_tokens": debate.completion_token,
         }
+        result.update(debate.config)
+        del result['debate_topic']
         signal.alarm(0)
     except Exception as e:
         print(f"Got exception {e} when solving problem {problem['problem_id']}", flush=True)
@@ -298,9 +300,7 @@ def multidebate(config_list, problem):
             "correct_ans": get_answer(problem["solution"]),
             "time": time.time() - start,
         }
-
-    result.update(debate.config)
-    del result['debate_topic']
+    
     return result
 
 def pseudo_main(config_list, use_azure):
