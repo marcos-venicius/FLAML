@@ -490,9 +490,9 @@ def pseudo_main(config_list, use_azure):
         # tar every 200 problems
         if i > 0 and i % 200 == 0:
             print(f"tar {i} problems", flush=True)
-            os.system("tar -czf interpreter.tar.gz interpreter_results full_run.out")
+            os.system("tar -czf results.tar.gz results full_run.out")
     
-    os.system("tar -czf interpreter.tar.gz interpreter_results full_run.out")
+    os.system("tar -czf results.tar.gz results full_run.out")
 
 
     # special case for asy
