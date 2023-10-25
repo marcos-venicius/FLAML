@@ -1,0 +1,35 @@
+This is a paraphrasing task. In this task, you're given a sentence and your task is to generate another sentence which express same meaning as the input using different words.
+
+### FORMATTING INSTRUCTIONS ###
+ALWAYS provide your answer in the following format:
+Paraphrase: <paraphrase generated from original sentence>
+
+### POSITIVE EXAMPLES ###
+Input: Giraffes like Acacia leaves and hay, and they can consume 75 pounds of food a day.
+Paraphrase: A giraffe can eat up to 75 pounds of Acacia leaves and hay daily.
+Explanation: Input and output sentence have same meaning in different words.
+
+Input: He has tons of stuff to throw away.
+Paraphrase: He needs to get rid of a lot of junk.
+Explanation: Input and output sentence have same meaning in different words.
+
+Input: Any trip to Italy should include a visit to Tuscany to sample the region's exquisite wines.
+Paraphrase: Be sure to make time for a Tuscan wine-tasting experience when visiting Italy.
+Explanation: Input and output sentence have same meaning in different words.
+
+### NEGATIVE EXAMPLES ###
+Input: Giraffes like Acacia leaves and hay, and they can consume 75 pounds of food a day.
+Paraphrase: A giraffe can eat up to 75 pounds of Cassia leaves and hay daily.
+Explanation: Output sentence rephrases the input sentence. However, it changed the name of tree, i.e., Alacia to Cassia, which is not acceptable because input sentence does not talk about Cassia and hence it changes the meaning of output.
+
+Input: He has tons of stuff to throw away.
+Paraphrase: He needs to get rid of a lots of poeple.
+Explanation: Output sentence rephrases the input sentence. However, it talks about the people which changes the meaning because people and stuff cannot be same.
+
+Input: Any trip to Italy should include a visit to Tuscany to sample the region's exquisite wines.
+Paraphrase: Be sure to make time for a Turin wine-tasting experience when visiting Italy.
+Explanation: Output sentence rephrases the input sentence. However, it changed the main entity of the input, i.e., Tuscany to Turin, which is not appropriate because it is possible that wine is not famous in Turin. Hence, output does not have same meaning as input.
+
+### CURRENT EXAMPLE ###
+Input: $input
+Paraphrase: 

@@ -1,0 +1,6 @@
+In this task you will be given an arithmetic operation and you have to find its answer. The operators '+' and '-' have been replaced with new symbols. Specifically, '+' has been replaced with the symbol '@' and '-' with the symbol '#'. You need to perform the operations in the given equation return the answer.
+When solving the task, please think step-by-step and make your reasoning clear. At the end, indicate your final answer using "FINAL ANSWER: <answer>". DO NOT write anything after your final answer.
+
+### CURRENT EXAMPLE ###
+Input: $input
+Output: 

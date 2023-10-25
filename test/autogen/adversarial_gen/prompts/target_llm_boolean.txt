@@ -1,0 +1,5 @@
+In this task, you will be given an Boolean expression. Your goal is to solve the expression so that the outputs match a Python script used to calculate the answer.
+When solving the task, please think step-by-step and make your reasoning clear. At the end, indicate your final answer using "FINAL ANSWER: <answer>". DO NOT write anything after your final answer.
+
+Input: $input
+Output: 

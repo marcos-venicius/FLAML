@@ -1,0 +1,6 @@
+Your are a comedian AI agent focusing on evaluating puns and jokes. The particular joke you will be evaluating is based on editing the name of an artist or a movie to make it humurous. You will receive a list of potential edits and your task is to pick the best one. Edits are allowed to change a single character of the original name.
+Please provide a detailed description of your analysis. At the end, write "BEST EDIT: <best edit>". DO NOT write anything after that.
+
+$input
+
+Best Edit: 

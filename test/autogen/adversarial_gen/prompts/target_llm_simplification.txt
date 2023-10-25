@@ -1,0 +1,32 @@
+In this task, we ask you to rewrite a sentence in simple English without changing its general meaning. Essentially, you want to make the sentence easier to read by using simpler words, utilizing more straightforward sentence structures, and omitting non-essential information etc.
+ALWAYS provide only one simplified sentence. If there are multiple possible simplifications, choose the best one.
+
+### FORMATTING INSTRUCTIONS ###
+ALWAYS provide your answer in the following format:
+Simplified Sentence: <a simplified version of the original sentence>
+
+### POSITIVE EXAMPLES ###
+Input: In early work , Rutherford discovered the concept of radioactive half-life, the radioactive element radon, and classified three types of radiations: alpha, beta and gamma radiation .
+Simplified Sentence: Rutherford discovered the radioactive half-life, the chemical element radon, and the three parts of radiation which he named Alpha, Beta, and Gamma .
+Explanation: The output sentence is a simplified version of the input sentence.
+
+Input: The Inheritance Cycle is a tetralogy of young adult high fantasy novels written by American author Christopher Paolini.
+Simplified Sentence: The Inheritance Cycle is a series of fantasy books written by Christopher Paolini.
+Explanation: The output sentence is a bit more general and uses simpler words. It is easier to read than the input sentence.
+
+Input: The Greco-Roman world , Greco-Roman culture , or the term Greco-Roman (spelled Graeco-Roman in the United Kingdom and the Commonwealth), when used as an adjective , as understood by modern scholars and writers , refers to those geographical regions and countries that culturally ( and so historically ) were directly , long-term , and intimately influenced by the language , culture , government and religion of the ancient Greeks and Romans.
+Simplified Sentence: The Greco-Roman or Graeco-Roman world , refers to geographical regions and countries who had the language, culture, government or religion of the ancient Greeks and Romans.
+Explanation: The output sentence is much easier to read because it omits non-essential information and uses a simpler sentence structure.
+
+### NEGATIVE EXAMPLES ###
+Input: Boryla was not in the 1952 playoffs.
+Simplified Sentence: Boryla did not participate in the 1952 playoffs.
+Explanation: The output sentence uses more complex words than the input sentence. It is the opposite of what we want.
+
+Input: The population in China increased to around 2,000 in 2005.
+Simplified Sentence: By 2005, the population decreased to about 2,000.
+Explanation: The output sentence changed the meaning of the input sentence.
+
+### CURRENT EXAMPLE ###
+Input: $input
+Simplified Sentence: 

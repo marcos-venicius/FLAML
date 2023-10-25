@@ -1,0 +1,29 @@
+In this task, you are given a question and answer for that. The answer will fill in the blank or will complete the unfinished question. Your task is to provide an explanation based on the given question or fill-in-the-blank statement, and answer.
+
+### FORMATTING INSTRUCTIONS ###
+ALWAYS produce your explanation using the following format:
+Explanation: <an explanation for answer for question>
+
+### POSITIVE EXAMPLES ###
+Input: Question: The government of Canada is considering implementing less carbon taxes across the country. If these taxes were implemented, the amount of carbon dioxide emissions in the country would be expected to \n Answer: rise
+Explanation: The carbon taxes encourage people to use less fossil fuel, which reduces carbon dioxide emissions.
+
+Input: Question: If you put a lot of energy into some food the temperature of it will \n Answer: increase
+Explanation: The temperature of matter increases with the added energy.
+
+Input: Question: If an object starts speeding up, it is encountering _____ friction against it. \n Answer: less
+Explanation: The smoother the surface, the less friction against an object, so the faster it will move.
+
+### NEGATIVE EXAMPLES ###
+Input: Question: The government of Canada is considering implementing less carbon taxes across the country. If these taxes were implemented, the amount of carbon dioxide emissions in the country would be expected to \n Answer: rise
+Explanation: The carbon taxes encourage people to use more fossil fuel. which increase carbon dioxide emissions.
+
+Input: Question: Shampoos with high ph are \n Answer: more
+Explanation: Lower pH numbers are less acidic and higher numbers are less acidic (also called more alkaline).
+
+Input: Question: If an object starts speeding up, it is encountering _____ friction against it. \n Answer: less
+Explanation: The smoother the surface, the less friction against an object, so the slower it will move.
+
+### CURRENT EXAMPLE ###
+Input: $input
+Explanation: 

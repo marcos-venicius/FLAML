@@ -10,6 +10,8 @@ from flaml.tune.space import is_constant
 from flaml.automl.logger import logger_formatter
 from .openai_utils import get_key
 
+from flaml.autogen.extensions.substrate_llm import ChatCompletion as Substrate_ChatCompletion, Completion as Substrate_Completion
+
 try:
     import openai
     from openai.error import (
@@ -56,6 +58,11 @@ class Completion(openai_Completion):
         "gpt-4-0314",  # deprecate in Sep
         "gpt-4-0613",
         "gpt-4-32k-0613",
+    }
+
+    # set of models that support embeddings
+    embedding_models = {
+        "text-embedding-ada-002"
     }
 
     # price per 1k tokens
@@ -193,9 +200,11 @@ class Completion(openai_Completion):
                 cls._book_keeping(config, response)
                 return response
         openai_completion = (
-            openai.ChatCompletion
+            #openai.ChatCompletion
+            Substrate_ChatCompletion
             if config["model"] in cls.chat_models or issubclass(cls, ChatCompletion)
-            else openai.Completion
+            #else openai.Completion
+            else openai.Completion if config["model"] in cls.embedding_models else Substrate_Completion
         )
         start_time = time.time()
         request_timeout = cls.request_timeout
