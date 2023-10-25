@@ -71,7 +71,6 @@ class LLMClient:
         # populate the headers
         headers = {
             'Content-Type': 'application/json',
-            #'X-ScenarioGUID': '0d160540-b402-4d85-a737-da74093b8600',
             'Authorization': 'Bearer ' + token,
             'X-ModelType': model_name}
 
