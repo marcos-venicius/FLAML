@@ -148,6 +148,6 @@ def main(log_file="logs-100.txt", question_process=None):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--log_file", type=str, default="logs-clean-100.txt")
+    parser.add_argument("--log_file", type=str, default="log-original-all.txt")
     args = parser.parse_args()
     main(args.log_file)
