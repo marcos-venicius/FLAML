@@ -2,6 +2,7 @@ import json
 import os
 import string
 import re
+import argparse
 
 
 # https://qa.fastforwardlabs.com/no%20answer/null%20threshold/bert/distilbert/exact%20match/f1/robust%20predictions/2020/06/09/Evaluating_BERT_on_SQuAD.html#F1
@@ -100,7 +101,7 @@ def main(log_file="logs-100.txt", question_process=None):
     print("\nAnalysis log file:", log_file)
     queries_file = "https://huggingface.co/datasets/thinkall/NaturalQuestionsQA/resolve/main/queries.jsonl"
     if not os.path.exists("/tmp/chromadb/queries.jsonl"):
-        os.popen(f"wget -O /tmp/chromadb/queries.jsonl {queries_file}")
+        os.popen(f"wget -O /tmp/chromadb/queries.jsonl {queries_file}").read()
     queries = [json.loads(line) for line in open("/tmp/chromadb/queries.jsonl").readlines() if line]
     questions = [question_process(q["text"]) for q in queries]
     answers = [q["metadata"]["answer"] for q in queries]
@@ -146,4 +147,7 @@ def main(log_file="logs-100.txt", question_process=None):
 
 
 if __name__ == "__main__":
-    main("output.txt")
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--log_file", type=str, default="logs-clean-100.txt")
+    args = parser.parse_args()
+    main(args.log_file)
