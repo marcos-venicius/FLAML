@@ -91,21 +91,23 @@ def compute_metrics(results, mode="all"):
     print(f"Average Recall: {sum(all_recall_scores) / len(all_recall_scores)}")
 
 
-def main(log_file="logs-100.txt"):
+def main(log_file="logs-100.txt", question_process=None):
+    if not question_process:
+
+        def question_process(x):
+            return x
+
     print("\nAnalysis log file:", log_file)
     queries_file = "https://huggingface.co/datasets/thinkall/NaturalQuestionsQA/resolve/main/queries.jsonl"
     if not os.path.exists("/tmp/chromadb/queries.jsonl"):
         os.popen(f"wget -O /tmp/chromadb/queries.jsonl {queries_file}")
     queries = [json.loads(line) for line in open("/tmp/chromadb/queries.jsonl").readlines() if line]
-    questions = [q["text"] for q in queries]
+    questions = [question_process(q["text"]) for q in queries]
     answers = [q["metadata"]["answer"] for q in queries]
     print("Total Number of questions:", len(questions))
 
     results = []
     _cnt_update_context = 0
-
-    questions = [q["text"] for q in queries]
-    answers = [q["metadata"]["answer"] for q in queries]
 
     with open(log_file, "r") as f:
         lines = f.readlines()
@@ -113,7 +115,7 @@ def main(log_file="logs-100.txt"):
         len_lines = len(lines)
         print(f"{len_lines=}")
         for idx in range(len_lines):
-            if idx == 0 or lines[idx].startswith(">>>>>>>>>>>>>> case:"):
+            if idx == 2 or lines[idx].startswith(">>>>>>>>>>>>>> case:"):
                 update_context = 0
                 question = lines[idx].split("case:")[1].replace("<<<<<<<<<<<<<<", "").strip()
             elif (
@@ -125,18 +127,7 @@ def main(log_file="logs-100.txt"):
                 idx < len_lines - 5
                 and "----------------------------------------------------------------------" in lines[idx + 2]
                 and lines[idx + 5].startswith(">>>>>>>>>>>>>> case:")
-            ):
-                answer = lines[idx].strip()
-                results.append(
-                    {
-                        "question": question,
-                        "answer": answer,
-                        "update_context": update_context,
-                        "gold_answers": answers[questions.index(question)],
-                    }
-                )
-                question = answer = update_context = None
-            elif idx == len_lines - 2:
+            ) or idx == len_lines - 2:
                 answer = lines[idx].strip()
                 results.append(
                     {
@@ -155,4 +146,4 @@ def main(log_file="logs-100.txt"):
 
 
 if __name__ == "__main__":
-    main("logs-100.txt")
+    main("output.txt")
