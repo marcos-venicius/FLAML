@@ -2,7 +2,56 @@ import json
 import os
 import string
 import re
+import random
 import argparse
+import nltk
+from nltk.corpus import words, stopwords
+from nltk.tokenize import word_tokenize
+
+nltk.download("stopwords")
+nltk.download("punkt")
+nltk.download("words")
+
+random.seed(42)
+
+
+def generate_random_word():
+    # Get the list of English words from the nltk corpus
+    word_list = words.words()
+
+    # Choose a random word from the list
+    random_word = random.choice(word_list)
+
+    return random_word
+
+
+def random_variation(question):
+    # Split the question into words
+    words = question.split()
+
+    # Randomly select a word to modify
+    index_to_modify = random.randint(0, len(words) - 1)
+
+    # Generate a random modification (you can customize this part)
+    modification_options = ["add", "remove", "replace"]
+    modification = random.choice(modification_options)
+
+    if modification == "add":
+        # Add a random word
+        new_word = generate_random_word()
+        words.insert(index_to_modify, new_word)
+    elif modification == "remove":
+        # Remove the selected word
+        del words[index_to_modify]
+    elif modification == "replace":
+        # Replace the selected word with a random word
+        new_word = generate_random_word()
+        words[index_to_modify] = new_word
+
+    # Join the modified words back into a question
+    modified_question = " ".join(words)
+
+    return modified_question
 
 
 # https://qa.fastforwardlabs.com/no%20answer/null%20threshold/bert/distilbert/exact%20match/f1/robust%20predictions/2020/06/09/Evaluating_BERT_on_SQuAD.html#F1
@@ -92,6 +141,22 @@ def compute_metrics(results, mode="all"):
     print(f"Average Recall: {sum(all_recall_scores) / len(all_recall_scores)}")
 
 
+def remove_common_words(text):
+    # Tokenize the text into words
+    words = word_tokenize(text)
+
+    # Get the list of English stop words
+    stop_words = set(stopwords.words("english"))
+
+    # Filter out common words
+    filtered_words = [word for word in words if word.lower() not in stop_words]
+
+    # Reconstruct the text without common words
+    filtered_text = " ".join(filtered_words)
+
+    return filtered_text
+
+
 def main(log_file="logs-100.txt", question_process=None):
     if not question_process:
 
@@ -116,6 +181,7 @@ def main(log_file="logs-100.txt", question_process=None):
         len_lines = len(lines)
         print(f"{len_lines=}")
         for idx in range(len_lines):
+            # print(f"{idx=}, {lines[idx]}")
             if idx == 2 or lines[idx].startswith(">>>>>>>>>>>>>> case:"):
                 update_context = 0
                 question = lines[idx].split("case:")[1].replace("<<<<<<<<<<<<<<", "").strip()
@@ -124,20 +190,35 @@ def main(log_file="logs-100.txt", question_process=None):
             ):
                 update_context = 1
                 _cnt_update_context += 1
+                if (
+                    idx < len_lines - 5
+                    and "----------------------------------------------------------------------" in lines[idx + 2]
+                    and lines[idx + 5].startswith(">>>>>>>>>>>>>> case:")
+                ):
+                    answer = lines[idx].strip()
+                    # print(f"{question=}")
+                    res = {
+                        "question": question,
+                        "answer": answer,
+                        "update_context": update_context,
+                        "gold_answers": answers[questions.index(question)],
+                    }
+                    results.append(res)  # if res not in results else None
+                    question = answer = update_context = None
             elif (
                 idx < len_lines - 5
                 and "----------------------------------------------------------------------" in lines[idx + 2]
                 and lines[idx + 5].startswith(">>>>>>>>>>>>>> case:")
             ) or idx == len_lines - 2:
                 answer = lines[idx].strip()
-                results.append(
-                    {
-                        "question": question,
-                        "answer": answer,
-                        "update_context": update_context,
-                        "gold_answers": answers[questions.index(question)],
-                    }
-                )
+                # print(f"{question=}")
+                res = {
+                    "question": question,
+                    "answer": answer,
+                    "update_context": update_context,
+                    "gold_answers": answers[questions.index(question)],
+                }
+                results.append(res)  # if res not in results else None
                 question = answer = update_context = None
 
     print(f"{_cnt_update_context=}")
@@ -148,6 +229,6 @@ def main(log_file="logs-100.txt", question_process=None):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--log_file", type=str, default="log-original-all.txt")
+    parser.add_argument("--log_file", type=str, default="logs-clean-100.txt")
     args = parser.parse_args()
-    main(args.log_file)
+    main(args.log_file, question_process=remove_common_words)
