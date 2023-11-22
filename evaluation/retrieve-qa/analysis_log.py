@@ -174,7 +174,7 @@ def main(log_file="logs-100.txt", question_process=None):
 
     results = []
     _cnt_update_context = 0
-
+    _idx_question = 0
     with open(log_file, "r") as f:
         lines = f.readlines()
         question = answer = update_context = None
@@ -201,10 +201,13 @@ def main(log_file="logs-100.txt", question_process=None):
                         "question": question,
                         "answer": answer,
                         "update_context": update_context,
-                        "gold_answers": answers[questions.index(question)],
+                        "gold_answers": answers[_idx_question]
+                        if questions[_idx_question] == question
+                        else answers[questions.index(question)],
                     }
                     results.append(res)  # if res not in results else None
                     question = answer = update_context = None
+                    _idx_question += 1
             elif (
                 idx < len_lines - 5
                 and "----------------------------------------------------------------------" in lines[idx + 2]
@@ -216,10 +219,13 @@ def main(log_file="logs-100.txt", question_process=None):
                     "question": question,
                     "answer": answer,
                     "update_context": update_context,
-                    "gold_answers": answers[questions.index(question)],
+                    "gold_answers": answers[_idx_question]
+                    if questions[_idx_question] == question
+                    else answers[questions.index(question)],
                 }
                 results.append(res)  # if res not in results else None
                 question = answer = update_context = None
+                _idx_question += 1
 
     print(f"{_cnt_update_context=}")
     compute_metrics(results, mode="all")
